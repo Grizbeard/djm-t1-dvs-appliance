@@ -105,4 +105,4 @@ git clone --recurse-submodules <this repo>
 
 ## License
 
-MIT, matching upstream. Set the copyright holder in [LICENSE](LICENSE) before publishing.
+MIT, matching upstream. Copyright (c) 2026 Justin Morken. See [LICENSE](LICENSE).
