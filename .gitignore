@@ -1,0 +1,32 @@
+# Build output
+build/
+*.o
+*.ko
+*.mod
+*.mod.c
+*.cmd
+Module.symvers
+modules.order
+
+# Images and archives
+*.img
+*.img.xz
+*.zip
+*.tar.gz
+
+# Bench capture data (record the conclusions in docs/, not the raw dumps)
+*.s24
+*.wav
+captures/
+
+# Local overrides
+.env
+*.local
+secrets/
+
+# Editor / OS
+.vscode/
+.idea/
+*.swp
+.DS_Store
+Thumbs.db
