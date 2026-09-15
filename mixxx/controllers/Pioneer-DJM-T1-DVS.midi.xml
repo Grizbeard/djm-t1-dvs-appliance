@@ -1,0 +1,250 @@
+<?xml version='1.0' encoding='utf-8'?>
+<MixxxControllerPreset schemaVersion="1" mixxxVersion="2.5.0+">
+    <info>
+        <name>Pioneer DJM-T1 (DVS / external mixing)</name>
+        <author>Justin Morken; control numbers from Aaron Landis's djm-t1-linux calibration</author>
+        <description>DJM-T1 mapping for a standalone DVS appliance where the mixer does EQ, faders, crossfader and headphone cueing in ANALOGUE and the turntables drive playback. The mixer section is deliberately unmapped: mapping it on top of the analogue controls would attenuate twice. What is mapped is the part the mixer cannot do itself - library navigation, track loading, transport, and digital-vinyl mode switching. Requires the djm_midi bridge (the mixer transmits no MIDI without it) and, for the DVS controls to do anything, vinyl control configured in Preferences. All controls are on MIDI channel 1.</description>
+    </info>
+    <controller id="PIONEER DJM-T1 MIDI 1">
+        <scriptfiles>
+            <file functionprefix="DJMT1DVS" filename="Pioneer-DJM-T1-DVS-scripts.js"/>
+        </scriptfiles>
+        <controls>
+
+            <!-- ================================================================
+                 DELIBERATELY NOT MAPPED - these are analogue on the DJM-T1.
+                 See ../../docs/decisions.md ADR-003.
+
+                   CC 0x0D/0x0E  TRIM            CC 0x15/0x16  VOLUME faders
+                   CC 0x0F-0x14  3-band EQ       CC 0x17/0x18  crossfader
+                   Note 0x2F/0x30  CUE / PFL     (headphone cueing is analogue)
+
+                 Mapping any of these would mean Mixxx attenuating a signal the
+                 mixer is already attenuating. Master, booth and headphone knobs
+                 send no MIDI at all, so they are absent for a different reason.
+                 ================================================================ -->
+
+            <!-- ============ Library browsing ============ -->
+            <control>
+                <group>[Library]</group>
+                <key>MoveVertical</key>
+                <description>Browse encoder: scroll the library</description>
+                <status>0xB0</status>
+                <midino>0x00</midino>
+                <options><selectknob/></options>
+            </control>
+            <control>
+                <group>[Library]</group>
+                <key>GoToItem</key>
+                <description>Browse encoder push: open / load the selected item</description>
+                <status>0x90</status>
+                <midino>0x00</midino>
+                <options><normal/></options>
+            </control>
+            <control>
+                <group>[Library]</group>
+                <key>ScrollVertical</key>
+                <description>Deck A/C auto-loop encoder: fast page-scroll the library</description>
+                <status>0xB0</status>
+                <midino>0x09</midino>
+                <options><selectknob/></options>
+            </control>
+            <control>
+                <group>[Library]</group>
+                <key>DJMT1DVS.focusForward</key>
+                <description>Deck A/C SELECT: move focus sidebar / table / search</description>
+                <status>0x90</status>
+                <midino>0x19</midino>
+                <options><script-binding/></options>
+            </control>
+            <control>
+                <group>[Library]</group>
+                <key>DJMT1DVS.focusBackward</key>
+                <description>Deck C/D SELECT: move focus backwards</description>
+                <status>0x90</status>
+                <midino>0x1A</midino>
+                <options><script-binding/></options>
+            </control>
+            <control>
+                <group>[Library]</group>
+                <key>DJMT1DVS.showTrackMenu</key>
+                <description>SNAP/QUANTIZE: open the track context menu (touch panels cannot right-click)</description>
+                <status>0x90</status>
+                <midino>0x31</midino>
+                <options><script-binding/></options>
+            </control>
+
+            <!-- ============ Load ============ -->
+            <control>
+                <group>[Channel1]</group>
+                <key>LoadSelectedTrack</key>
+                <description>LOAD selected track to deck 1</description>
+                <status>0x90</status>
+                <midino>0x01</midino>
+                <options><normal/></options>
+            </control>
+            <control>
+                <group>[Channel2]</group>
+                <key>LoadSelectedTrack</key>
+                <description>LOAD selected track to deck 2</description>
+                <status>0x90</status>
+                <midino>0x02</midino>
+                <options><normal/></options>
+            </control>
+
+            <!-- ============ Digital vinyl ============
+                 On hardware rather than on screen: set-once mode switches, and the
+                 deck info row has no room for them at 1024px. The skin shows the
+                 resulting signal status instead. -->
+            <control>
+                <group>[Channel1]</group>
+                <key>DJMT1DVS.toggleVinyl</key>
+                <description>Deck A/C ACTIVE: vinyl control on/off for deck 1</description>
+                <status>0x90</status>
+                <midino>0x2C</midino>
+                <options><script-binding/></options>
+            </control>
+            <control>
+                <group>[Channel2]</group>
+                <key>DJMT1DVS.toggleVinyl</key>
+                <description>Deck C/D ACTIVE: vinyl control on/off for deck 2</description>
+                <status>0x90</status>
+                <midino>0x2E</midino>
+                <options><script-binding/></options>
+            </control>
+            <control>
+                <group>[Channel1]</group>
+                <key>DJMT1DVS.cycleVinylMode</key>
+                <description>Deck A/C PLAY MODE: cycle absolute / relative / constant</description>
+                <status>0x90</status>
+                <midino>0x6C</midino>
+                <options><script-binding/></options>
+            </control>
+            <control>
+                <group>[Channel2]</group>
+                <key>DJMT1DVS.cycleVinylMode</key>
+                <description>Deck C/D PLAY MODE: cycle absolute / relative / constant</description>
+                <status>0x90</status>
+                <midino>0x6E</midino>
+                <options><script-binding/></options>
+            </control>
+            <control>
+                <group>[Channel1]</group>
+                <key>DJMT1DVS.togglePassthrough</key>
+                <description>FX1 ON: deck 1 passthrough (play the record itself)</description>
+                <status>0x90</status>
+                <midino>0x0D</midino>
+                <options><script-binding/></options>
+            </control>
+            <control>
+                <group>[Channel2]</group>
+                <key>DJMT1DVS.togglePassthrough</key>
+                <description>FX2 ON: deck 2 passthrough (play the record itself)</description>
+                <status>0x90</status>
+                <midino>0x0E</midino>
+                <options><script-binding/></options>
+            </control>
+
+            <!-- ============ Transport ============
+                 Kept even though the turntable drives playback in absolute mode:
+                 still wanted for cueing and whenever a deck runs without timecode.
+                 Each press emits 0x7F then 0x00, so toggles act on the 0x7F edge
+                 in the script; cue_default wants both edges and is mapped direct. -->
+            <control>
+                <group>[Channel1]</group>
+                <key>DJMT1DVS.togglePlay</key>
+                <description>Deck A PLAY/PAUSE</description>
+                <status>0x90</status>
+                <midino>0x03</midino>
+                <options><script-binding/></options>
+            </control>
+            <control>
+                <group>[Channel2]</group>
+                <key>DJMT1DVS.togglePlay</key>
+                <description>Deck B PLAY/PAUSE</description>
+                <status>0x90</status>
+                <midino>0x04</midino>
+                <options><script-binding/></options>
+            </control>
+            <control>
+                <group>[Channel1]</group>
+                <key>cue_default</key>
+                <description>Deck A CUE</description>
+                <status>0x90</status>
+                <midino>0x0B</midino>
+                <options><normal/></options>
+            </control>
+            <control>
+                <group>[Channel2]</group>
+                <key>cue_default</key>
+                <description>Deck B CUE</description>
+                <status>0x90</status>
+                <midino>0x0C</midino>
+                <options><normal/></options>
+            </control>
+            <control>
+                <group>[Channel1]</group>
+                <key>DJMT1DVS.toggleSync</key>
+                <description>Deck A SYNC</description>
+                <status>0x90</status>
+                <midino>0x05</midino>
+                <options><script-binding/></options>
+            </control>
+            <control>
+                <group>[Channel2]</group>
+                <key>DJMT1DVS.toggleSync</key>
+                <description>Deck B SYNC</description>
+                <status>0x90</status>
+                <midino>0x06</midino>
+                <options><script-binding/></options>
+            </control>
+
+        </controls>
+        <outputs>
+            <!-- LED feedback. The output path is verified at the USB level (djm_midi
+                 writes to the mixer's MIDI OUT, ep 0x04); which note lights which LED
+                 is confirmed only for the CUE buttons, so treat these as proposed
+                 until checked on the panel. -->
+            <output>
+                <group>[Channel1]</group>
+                <key>vinylcontrol_enabled</key>
+                <description>Deck A/C ACTIVE LED tracks deck 1 vinyl control</description>
+                <status>0x90</status>
+                <midino>0x2C</midino>
+                <on>0x7F</on>
+                <off>0x00</off>
+                <minimum>0.5</minimum>
+            </output>
+            <output>
+                <group>[Channel2]</group>
+                <key>vinylcontrol_enabled</key>
+                <description>Deck C/D ACTIVE LED tracks deck 2 vinyl control</description>
+                <status>0x90</status>
+                <midino>0x2E</midino>
+                <on>0x7F</on>
+                <off>0x00</off>
+                <minimum>0.5</minimum>
+            </output>
+            <output>
+                <group>[Channel1]</group>
+                <key>passthrough</key>
+                <description>FX1 ON LED tracks deck 1 passthrough</description>
+                <status>0x90</status>
+                <midino>0x0D</midino>
+                <on>0x7F</on>
+                <off>0x00</off>
+                <minimum>0.5</minimum>
+            </output>
+            <output>
+                <group>[Channel2]</group>
+                <key>passthrough</key>
+                <description>FX2 ON LED tracks deck 2 passthrough</description>
+                <status>0x90</status>
+                <midino>0x0E</midino>
+                <on>0x7F</on>
+                <off>0x00</off>
+                <minimum>0.5</minimum>
+            </output>
+        </outputs>
+    </controller>
+</MixxxControllerPreset>

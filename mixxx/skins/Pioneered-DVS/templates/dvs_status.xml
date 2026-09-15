@@ -1,0 +1,64 @@
+<!DOCTYPE template>
+<!--
+  Description:
+    Per-deck timecode signal status. Read-only.
+
+    This is the piece no existing Mixxx skin provides. Every community small-screen
+    skin is a controller companion built for jog wheels and pads, so none surfaces
+    vinyl control state. On a DVS appliance this is the only troubleshooting surface
+    for the timecode path: nothing on the mixer or the turntables reports whether
+    Mixxx is actually reading the control signal.
+
+    Only the *status* lives here. The vinyl on/off, mode (ABS/REL/CONST) and
+    passthrough controls are deliberately NOT on screen - they are set-once mode
+    switches, they are bound to the DJM-T1's own buttons in the controller mapping,
+    and the deck info row has no horizontal room for them at 1024px anyway. Controls
+    on hardware, state on screen.
+
+    Values come from src/vinylcontrol/defs_vinylcontrol.h:
+      0 VINYL_STATUS_DISABLED   vinyl control is off for this deck
+      1 VINYL_STATUS_OK         timecode locked and tracking
+      2 VINYL_STATUS_WARNING    signal degraded - dirty stylus, low level, worn record
+      3 VINYL_STATUS_ERROR      no usable timecode
+
+    Rendered as coloured text rather than pixmaps so it needs no new image assets
+    and stays readable at arm's length on a small panel.
+
+  Variables:
+    channel: the deck number, e.g. 1
+-->
+<Template>
+  <PushButton>
+    <ObjectName>DvsStatusLight</ObjectName>
+    <Tooltip>Timecode signal status for this deck.
+
+OFF  - vinyl control disabled
+OK   - timecode locked and tracking
+WARN - signal degraded (stylus, level, worn record)
+ERR  - no usable timecode</Tooltip>
+    <Size>76f,26f</Size>
+    <NumberStates>4</NumberStates>
+    <State>
+      <Number>0</Number>
+      <Text>OFF</Text>
+    </State>
+    <State>
+      <Number>1</Number>
+      <Text>OK</Text>
+    </State>
+    <State>
+      <Number>2</Number>
+      <Text>WARN</Text>
+    </State>
+    <State>
+      <Number>3</Number>
+      <Text>ERR</Text>
+    </State>
+    <!-- displayValue only: no ButtonState connection, so there is no control for a
+         stray touch to write to and the widget is inert. -->
+    <Connection>
+      <ConfigKey>[Channel<Variable name="channel"/>],vinylcontrol_status</ConfigKey>
+      <BindProperty>displayValue</BindProperty>
+    </Connection>
+  </PushButton>
+</Template>

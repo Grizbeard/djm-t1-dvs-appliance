@@ -9,21 +9,39 @@ The upstream mapping (`external/djm-t1-linux/mixxx/Pioneer-DJM-T1.midi.xml`) is 
 *internal* mixing and maps the mixer section to Mixxx's software mixer. Using it here
 would double-attenuate every channel — once in Mixxx, once in the analogue path.
 
-The variant that belongs here keeps:
+`controllers/Pioneer-DJM-T1-DVS.midi.xml` is that variant. It keeps:
 
-- browse encoder (rotate + push)
+- browse encoder (rotate + push), plus the Deck A/C auto-loop encoder as a fast
+  page-scroll
 - LOAD buttons
 - deck transport: play, cue, sync
-- optionally the FX and performance sections, once the SHIFT layer is mapped
+- **digital-vinyl mode switching** — vinyl on/off, ABS/REL/CONST, passthrough
+- **library focus cycling and the track context menu**, on hardware buttons
 
 and drops:
 
 - trim, 3-band EQ, volume faders, crossfader — analogue
 - CUE / PFL buttons — headphone cueing is analogue and local to the mixer
 
-**Not written yet.** Derive it from the upstream mapping rather than from scratch; the
-control numbers are verified and documented in
-`external/djm-t1-linux/docs/midi-map.md`.
+Two design notes. The DVS controls are on hardware rather than on screen because they
+are set-once mode switches and the deck info row has no horizontal room for them at
+1024px; the skin shows the resulting *state* instead. And `[Library] show_track_menu`
+is bound to SNAP/QUANTIZE because Mixxx has no touchscreen mode and much of the library
+lives behind a right-click menu that a Pi touch panel cannot reliably summon — other Pi
+builders hit the same wall and solved it the same way.
+
+Control numbers come from the full-panel calibration in
+`external/djm-t1-linux/docs/midi-map.md`. Button assignments for the DVS controls are
+proposals — they use buttons that send MIDI but have no analogue function here, and can
+be moved freely.
+
+**Unverified on hardware:** the script has not been run in Mixxx, and the LED `<output>`
+blocks are proposed rather than confirmed (only the CUE-button LEDs are known-good
+upstream).
+
+## Skin
+
+`skins/Pioneered-DVS/` — see its [README](skins/Pioneered-DVS/README.DVS.md).
 
 ## Sound hardware
 
