@@ -157,3 +157,54 @@ latenight-rpi           2024-08               4.4M
 
 Skins are pure data, so `_localbuild/skinshot.ps1` in the Mixxx tree captures a skin
 with no rebuild — the fast way to compare these side by side.
+
+## What was built
+
+Two skins live in [`mixxx/skins/`](../mixxx/skins/), for two different panels.
+
+**[Pioneered-DVS](../mixxx/skins/Pioneered-DVS/README.DVS.md)** is the minimal
+adaptation this survey recommended: upstream Pioneered plus a per-deck timecode
+status light, for a conventional small panel at 1024×600 or so. GPL-3.0, as a
+derivative of Pioneered.
+
+**[Terminal-wide](../mixxx/skins/Terminal-wide/README.md)** is for the 8.8"
+**1920×480** ultrawide the build settled on. The layout is original — two deck
+columns flanking the waveforms, because an ultrawide has width and no height —
+and it carries the full DVS control set rather than just the status light, since
+1920px of width removes the constraint that kept those on hardware in
+Pioneered-DVS. Its visual design comes from the Terminal skin in the Mixxx tree,
+palette-generated in four colour schemes, so it is CC-BY-SA 3.0 rather than
+GPL-3.0; Pioneered is a reference for its touch sizing and tabbed page model,
+not a source of markup.
+
+The survey's conclusions held up in both cases. Deletion and enlargement really
+was most of the work, "designed at a small size" really did beat "shrunk to a
+small size", and the gap the survey identified — that no skin surfaces vinyl
+control state — is still the one thing both of these had to add from scratch.
+
+One finding to add to the list under *Touch findings from the community*:
+**upstream Mixxx cannot draw a vertical waveform.**
+`<Orientation>vertical</Orientation>` parses and reaches the renderer, but the
+allshader backend that current Mixxx uses never rotates — its only rotation
+helper, `matrixForWidgetGeometry()`, is referenced by nothing but its own
+header, and `rendergraph::Engine::resize` carries a commented-out `// TODO`
+where the turn belongs. The signal ends up squeezed into `height` pixels of
+`width`.
+
+Fixed on the `terminal-skin` branch of the Mixxx tree, which Terminal-wide's
+*two columns* lane arrangement depends on. Three pieces:
+
+- `rendergraph::Engine::resize` takes a `quarterTurn` flag and applies the
+  rotation, passing the turned extent down to the nodes. Every renderer already
+  builds its geometry in (length, breadth) space, so turning the scene is all
+  that is needed for the signal, the beat grid, the pre-roll and the mark lines.
+- The end-of-track flash used the widget's width and height rather than length
+  and breadth, so its gradient ran across the track instead of along it.
+- Mark labels needed the opposite treatment. The image has to stay unturned so
+  the mark's *line* keeps spanning the breadth — turning it undoes exactly that
+  — so only the chip inside it is built on its side, and it comes out upright
+  once the scene turns.
+
+Not covered: the "time until next mark" digits overlay, which is off by default
+and would still render on its side, and the legacy non-allshader renderers,
+which are left as they were.

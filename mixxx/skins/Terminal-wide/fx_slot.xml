@@ -1,0 +1,148 @@
+<!DOCTYPE template>
+<!--
+  Description:
+    One effect slot: its on switch, which effect is loaded, its meta knob, and
+    every parameter the loaded effect has.
+
+    Two rows, because one will not hold it. An effect can declare up to eight
+    knob parameters and eight button parameters, and which of those exist is a
+    property of the effect, not of the skin. All sixteen are laid out and each
+    hides itself unless the loaded effect has it, so what you see is whatever
+    that effect actually has - knobs where it wants an amount, switches where
+    it wants a choice.
+
+    Buttons come before knobs, as they do in Terminal: a switch changes what the
+    knobs beside it mean, so it reads first.
+
+  Variables:
+    FxUnit: 1 or 2
+    FxNum:  1, 2 or 3
+-->
+<Template>
+  <SetVariable name="FxUnitGroup">[EffectRack1_EffectUnit<Variable name="FxUnit"/>]</SetVariable>
+  <SetVariable name="FxSlotGroup">[EffectRack1_EffectUnit<Variable name="FxUnit"/>_Effect<Variable name="FxNum"/>]</SetVariable>
+
+  <WidgetGroup>
+    <ObjectName>FxSlotRow</ObjectName>
+    <Layout>vertical</Layout>
+    <SizePolicy>me,min</SizePolicy>
+    <Children>
+
+      <WidgetGroup>
+        <ObjectName>FxSlotHeadRow</ObjectName>
+        <Layout>horizontal</Layout>
+        <Size>0me,40f</Size>
+        <Children>
+          <PushButton>
+            <ObjectName>FxSlotEnable</ObjectName>
+            <TooltipId>EffectSlot_enabled</TooltipId>
+            <Size>60f,40f</Size>
+            <NumberStates>2</NumberStates>
+            <State><Number>0</Number><Text>on</Text></State>
+            <State><Number>1</Number><Text>on</Text></State>
+            <Connection>
+              <ConfigKey><Variable name="FxSlotGroup"/>,enabled</ConfigKey>
+              <ButtonState>LeftButton</ButtonState>
+            </Connection>
+          </PushButton>
+          <EffectSelector>
+            <ObjectName>FxSelector</ObjectName>
+            <SizePolicy>me,f</SizePolicy>
+            <Size>0me,40f</Size>
+            <EffectRack>1</EffectRack>
+            <EffectUnit><Variable name="FxUnit"/></EffectUnit>
+            <Effect><Variable name="FxNum"/></Effect>
+          </EffectSelector>
+          <WidgetGroup>
+            <ObjectName>FxMetaBox</ObjectName>
+            <Layout>vertical</Layout>
+            <Size>72f,40f</Size>
+            <Children>
+              <EffectMetaKnob>
+                <ObjectName>FxMetaKnob</ObjectName>
+                <TooltipId>EffectSlot_metaknob</TooltipId>
+                <Size>0me,40f</Size>
+                <MinAngle><Variable name="PotiMinAngle"/></MinAngle>
+                <MaxAngle><Variable name="PotiMaxAngle"/></MaxAngle>
+                <ArcRadius><Variable name="ArcRadius"/></ArcRadius>
+                <ArcThickness><Variable name="ArcThickness"/></ArcThickness>
+                <ArcBgThickness><Variable name="ArcBgThickness"/></ArcBgThickness>
+                <ArcBgColor><Variable name="ArcBgColor"/></ArcBgColor>
+                <ArcColor><Variable name="ArcColorSuper"/></ArcColor>
+                <ArcRoundCaps><Variable name="ArcRoundCaps"/></ArcRoundCaps>
+                <EffectUnit><Variable name="FxUnit"/></EffectUnit>
+                <Effect><Variable name="FxNum"/></Effect>
+                <Connection>
+                  <ConfigKey><Variable name="FxSlotGroup"/>,meta</ConfigKey>
+                </Connection>
+              </EffectMetaKnob>
+            </Children>
+          </WidgetGroup>
+        </Children>
+      </WidgetGroup>
+
+      <WidgetGroup>
+        <ObjectName>FxSlotParams</ObjectName>
+        <Layout>horizontal</Layout>
+        <SizePolicy>me,min</SizePolicy>
+        <Children>
+          <Template src="skin:fx_parameter_button.xml">
+            <SetVariable name="FxParameter">1</SetVariable>
+          </Template>
+          <Template src="skin:fx_parameter_button.xml">
+            <SetVariable name="FxParameter">2</SetVariable>
+          </Template>
+          <Template src="skin:fx_parameter_button.xml">
+            <SetVariable name="FxParameter">3</SetVariable>
+          </Template>
+          <Template src="skin:fx_parameter_button.xml">
+            <SetVariable name="FxParameter">4</SetVariable>
+          </Template>
+          <Template src="skin:fx_parameter_button.xml">
+            <SetVariable name="FxParameter">5</SetVariable>
+          </Template>
+          <Template src="skin:fx_parameter_button.xml">
+            <SetVariable name="FxParameter">6</SetVariable>
+          </Template>
+          <Template src="skin:fx_parameter_button.xml">
+            <SetVariable name="FxParameter">7</SetVariable>
+          </Template>
+          <Template src="skin:fx_parameter_button.xml">
+            <SetVariable name="FxParameter">8</SetVariable>
+          </Template>
+          <Template src="skin:fx_parameter.xml">
+            <SetVariable name="FxParameter">1</SetVariable>
+          </Template>
+          <Template src="skin:fx_parameter.xml">
+            <SetVariable name="FxParameter">2</SetVariable>
+          </Template>
+          <Template src="skin:fx_parameter.xml">
+            <SetVariable name="FxParameter">3</SetVariable>
+          </Template>
+          <Template src="skin:fx_parameter.xml">
+            <SetVariable name="FxParameter">4</SetVariable>
+          </Template>
+          <Template src="skin:fx_parameter.xml">
+            <SetVariable name="FxParameter">5</SetVariable>
+          </Template>
+          <Template src="skin:fx_parameter.xml">
+            <SetVariable name="FxParameter">6</SetVariable>
+          </Template>
+          <Template src="skin:fx_parameter.xml">
+            <SetVariable name="FxParameter">7</SetVariable>
+          </Template>
+          <Template src="skin:fx_parameter.xml">
+            <SetVariable name="FxParameter">8</SetVariable>
+          </Template>
+          <WidgetGroup>
+            <ObjectName>FxParamFiller</ObjectName>
+            <Layout>horizontal</Layout>
+            <SizePolicy>me,me</SizePolicy>
+            <Children/>
+          </WidgetGroup>
+        </Children>
+      </WidgetGroup>
+
+    </Children>
+  </WidgetGroup>
+</Template>

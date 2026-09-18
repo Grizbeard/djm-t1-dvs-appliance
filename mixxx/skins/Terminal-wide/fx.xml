@@ -1,0 +1,39 @@
+<!DOCTYPE template>
+<!--
+  Description:
+    The effects page: both units side by side, each with everything it has.
+
+    Effects used to be two narrow columns flanking the decks, which had room
+    for the selectors and nothing else. A page of their own fits the routing,
+    the unit controls, the three slots and their parameters - and none of it
+    competes with the decks for the 480 rows the panel has.
+-->
+<Template>
+  <WidgetGroup>
+    <ObjectName>FxPage</ObjectName>
+    <Layout>vertical</Layout>
+    <SizePolicy>me,me</SizePolicy>
+    <Children>
+
+      <SingletonContainer>
+        <ObjectName>ToolBar_Singleton</ObjectName>
+        <SizePolicy>me,max</SizePolicy>
+      </SingletonContainer>
+
+      <WidgetGroup>
+        <ObjectName>FxBody</ObjectName>
+        <Layout>horizontal</Layout>
+        <SizePolicy>me,me</SizePolicy>
+        <Children>
+          <Template src="skin:fx_unit.xml">
+            <SetVariable name="FxUnit">1</SetVariable>
+          </Template>
+          <Template src="skin:fx_unit.xml">
+            <SetVariable name="FxUnit">2</SetVariable>
+          </Template>
+        </Children>
+      </WidgetGroup>
+
+    </Children>
+  </WidgetGroup>
+</Template>
