@@ -224,6 +224,28 @@
         <Size>0me,40f</Size>
         <Children>
 
+          <!-- Key, and beside it how far the key has been moved, which reads
+               as one phrase the way "0.00 +-8" does on the other side.
+
+               <group>,pitch is the distance from the track's own key in
+               semitones (keycontrol.cpp: "pitch is the distance to the
+               original pitch in semitones"), so it is the number to show and
+               not a difference computed from key and file_key, which are key
+               enums rather than semitones.
+
+               Two widgets, one for each direction, because a skin cannot put a
+               "+" in front of a number: the positive one supplies the sign in
+               its own text and the negative one gets the minus from the number.
+               Exactly one is ever visible.
+
+               The visibility thresholds are in *parameter* space - a bound
+               property is fed the control's parameter, not its value, and pitch
+               is a potmeter over -6..+6, so a semitone is 1/12 and zero is
+               0.5. Each half appears once the offset reaches half a semitone in
+               its direction, which is the point at which the rounded number
+               stops being 0: 6.5/12 up, 5.5/12 down. That also keeps the field
+               empty while a platter wanders a few cents either side of the
+               track's own key, which with the key unlocked it does constantly. -->
           <WidgetGroup>
             <ObjectName>DeckKeyBox</ObjectName>
             <Layout>horizontal</Layout>
@@ -233,11 +255,50 @@
                 <ObjectName>DeckKey</ObjectName>
                 <TooltipId>visual_key</TooltipId>
                 <Group><Variable name="Group"/></Group>
-                <Size>0me,38f</Size>
+                <Size>76f,38f</Size>
                 <Connection>
                   <ConfigKey><Variable name="Group"/>,visual_key</ConfigKey>
                 </Connection>
               </Key>
+
+              <Number>
+                <ObjectName>DeckKeySteps</ObjectName>
+                <TooltipId>pitch</TooltipId>
+                <Size>52f,38f</Size>
+                <NumberOfDigits>0</NumberOfDigits>
+                <Text>+%1</Text>
+                <Connection>
+                  <ConfigKey><Variable name="Group"/>,pitch</ConfigKey>
+                </Connection>
+                <Connection>
+                  <ConfigKey><Variable name="Group"/>,pitch</ConfigKey>
+                  <Transform><Add>-0.5416666667</Add></Transform>
+                  <BindProperty>visible</BindProperty>
+                </Connection>
+              </Number>
+
+              <Number>
+                <ObjectName>DeckKeySteps</ObjectName>
+                <TooltipId>pitch</TooltipId>
+                <Size>52f,38f</Size>
+                <NumberOfDigits>0</NumberOfDigits>
+                <Text>%1</Text>
+                <Connection>
+                  <ConfigKey><Variable name="Group"/>,pitch</ConfigKey>
+                </Connection>
+                <Connection>
+                  <ConfigKey><Variable name="Group"/>,pitch</ConfigKey>
+                  <Transform><Add>-0.4583333333</Add><Invert/></Transform>
+                  <BindProperty>visible</BindProperty>
+                </Connection>
+              </Number>
+
+              <WidgetGroup>
+                <ObjectName>DeckKeyFiller</ObjectName>
+                <Layout>horizontal</Layout>
+                <SizePolicy>me,me</SizePolicy>
+                <Children/>
+              </WidgetGroup>
             </Children>
           </WidgetGroup>
 

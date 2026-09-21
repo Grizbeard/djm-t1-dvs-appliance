@@ -261,6 +261,7 @@ WEffectChainPresetButton QMenu::separator {
 #DeckFieldLabel,
 #DeckRateSign,
 #DeckRateRange,
+#DeckKeySteps,
 WTrackTableViewHeader,
 WTrackTableViewHeader::section {
   color: #929e8a;

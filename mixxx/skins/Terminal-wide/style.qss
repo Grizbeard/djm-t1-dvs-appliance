@@ -134,6 +134,15 @@ QToolTip {
   qproperty-alignment: 'AlignRight | AlignVCenter';
 }
 
+/* The key offset, sized and coloured like the pitch range on the other side of
+   the row: both are a qualifier on the value beside them rather than a value of
+   their own. */
+#DeckKeySteps {
+  font-size: 19px;
+  padding-left: 4px;
+  qproperty-alignment: 'AlignLeft | AlignVCenter';
+}
+
 /* Rate, sign and range are one reading - "0.00 +-8" - so the number ends
    where the sign begins and the range follows it, and the group lands near the
    middle of the box without any of the three being centred in its own span.

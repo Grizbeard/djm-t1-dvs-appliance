@@ -131,6 +131,22 @@ its own text with a hard-coded `Qt::AlignCenter` and ignores both `<Alignment>`
 and the stylesheet. Without that patch the key sits centred in its half of the
 row - wrong but harmless.
 
+**Key offset.** Next to the key, how far the key has been moved from the
+track's own, in semitones: `+3`, `-4`, and nothing at all while the track is
+playing in its own key. The number is `<group>,pitch`, which core describes as
+"the distance to the original pitch in semitones" - not a difference computed
+from `key` and `file_key`, which are key enums and not semitones.
+
+Two quirks are worth knowing if you touch this. A skin cannot put a `+` in
+front of a number, so there are two widgets, one per direction, and the
+positive one carries the sign in its own text; exactly one is ever visible. And
+a bound property is fed the control's *parameter*, not its value, so the
+visibility thresholds are in parameter space - `pitch` is a potmeter over
+-6..+6, which puts zero at 0.5 and a semitone at 1/12. Each half appears at
+half a semitone in its direction, the point where the rounded number stops
+being 0, which also keeps the field empty while a platter wanders a few cents
+either side with the key unlocked.
+
 **Loop and beatjump.** Both lengths are readouts - the controller sets them -
 so they are filled boxes with the ink knocked out, each in its family's hue:
 loop yellow, beatjump magenta on the Btop palette, and the scheme's one hue on
