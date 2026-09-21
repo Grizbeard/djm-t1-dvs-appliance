@@ -66,27 +66,97 @@ information. Building from source is a fallback, not the opening move.
 
 ---
 
-## Phase 2 — The 1920×480 panel
+## Phase 2 — The panel: Waveshare 8.8-DSI-TOUCH-A
 
-The skin now targets an **8.8" 1920×480 ultrawide**. That is a non-standard mode and the
-most likely place to lose an afternoon.
+**DSI, not HDMI.** 8.8" IPS, 10-point capacitive touch, display IC OTA7290B, touch IC
+GT9271. Native resolution is **480×1920 portrait** — the 1920×480 the skin targets is the
+*rotated* orientation, so rotation is mandatory, not optional.
 
-- ⬜ Confirm the panel drives at native resolution at all.
-- ⬜ If EDID is not honoured (common on these automotive-style panels), force it. Pi 5 is
-  KMS/vc4, so the modern route is a kernel cmdline video mode rather than legacy
-  `hdmi_*` settings:
+Source: the vendor wiki (`8.8-DSI-TOUCH-A`, oldid 110243).
 
-  ```
-  video=HDMI-A-1:1920x480@60
-  ```
+### 2.1 ⬜ Physical connection (Pi 5)
 
-  in `/boot/firmware/cmdline.txt`. If that is not enough the panel needs explicit
-  `hdmi_timings`, which means getting the timings from its datasheet.
-- ⬜ Check rotation. Many 8.8" ultrawides are physically a portrait panel mounted
-  sideways and report as such; if so, set `video=HDMI-A-1:...,rotate=90` or handle it in
-  the compositor.
-- ⬜ Verify touch maps to the right axes after any rotation — a rotated display with an
-  unrotated touch matrix is the classic symptom.
+- **22-pin, 200 mm, _reversed_ FFC cable** into the Pi 5's 22-pin DSI port. Pi 4 and
+  earlier use the 15-pin cable instead — different part, easy to order wrong.
+- **Power is separate.** The DSI cable does not carry it: run 5V and GND from the GPIO
+  header to the display's power connector.
+- **The panel needs ≥ 0.43 A.** Below that it fails to start or displays abnormally, and
+  running it in that state can damage it permanently. Budget PSU headroom accordingly —
+  a Pi 5 plus NVMe plus this panel wants the 5 A supply, not a spare phone charger.
+- Pi mounts to the display with M2.5 screws, which is worth knowing before designing the
+  enclosure (Phase 10).
+
+### 2.2 ⬜ Enable it
+
+Trixie or Bookworm. Append to `/boot/firmware/config.txt`:
+
+```
+dtoverlay=vc4-kms-v3d
+dtoverlay=vc4-kms-dsi-waveshare-panel-v2,8_8_inch_a
+```
+
+Add `,dsi0` to the second line to use DSI0 instead; DSI1 is the vendor default.
+
+> **Use the `-v2` overlay.** A web search will offer
+> `dtoverlay=vc4-kms-dsi-waveshare-panel,8_8_inch` — that is the *older* "8.8inch DSI
+> LCD" product, a different panel with the same diagonal. The DSI-TOUCH-A series is the
+> v2 overlay with the `_a` suffix. Both exist in the mainline Pi overlay tree and both
+> claim 8.8"/480×1920, so the wrong one looks plausible right up until it doesn't work.
+
+Allow ~30 s on first boot before the display comes up.
+
+### 2.3 ⬜ Rotate to landscape
+
+Needed to get 1920×480. **On Pi 5 the connector enumerates as `DSI-2`, not `DSI-1`** —
+confirm the actual name on the system before writing it anywhere (the vendor's own page
+is inconsistent about this).
+
+Desktop route — also rotates touch in one step:
+
+> Preferences → Control Center → Screens → `DSI-2` → Orientation → Apply,
+> with "Touchscreen" ticked under the same menu.
+
+Lite/headless route — at the **beginning** of `/boot/firmware/cmdline.txt`:
+
+```
+video=DSI-2:480x1920e,rotate=90
+```
+
+Then touch needs rotating separately, via `/etc/udev/rules.d/99-waveshare-touch.rules`:
+
+```
+ENV{ID_INPUT_TOUCHSCREEN}=="1", ENV{LIBINPUT_CALIBRATION_MATRIX}="0 -1 1 1 0 0"
+```
+
+(That matrix is the 90° one; the wiki gives 180° and 270° variants.)
+
+Caveat worth remembering: **cmdline.txt rotation applies to DSI and HDMI together** —
+they share one value and cannot be rotated independently. That bites the moment you
+attach HDMI to debug something.
+
+### 2.4 ⬜ Choose the touch mode — this interacts with the mapping
+
+Trixie/Bookworm offer two, under Screen Configuration → Touchscreen:
+
+| Mode | Gives you | Costs you |
+|---|---|---|
+| **Mouse Emulation** (default) | click, double-click, **long-press = right-click** | no swipe, no multitouch |
+| **Multitouch** | swipe, multitouch | **no long-press right-click**, no double-click |
+
+Scrolling a long library wants Multitouch. But Multitouch removes right-click entirely,
+and Mixxx puts a great deal behind the track context menu.
+
+This is exactly why SNAP/QUANTIZE is bound to `[Library] show_track_menu` in the mapping.
+That binding stops being a nicety and becomes load-bearing the moment Multitouch is
+selected. Decide the touch mode and the mapping together, not separately.
+
+### 2.5 ⬜ Backlight
+
+Software-controllable, which is useful in a dark booth:
+
+```bash
+echo 128 | sudo tee /sys/class/backlight/*/brightness   # 0-255
+```
 
 This phase can run in parallel with Phase 3; neither blocks the other.
 
@@ -223,9 +293,15 @@ sake as an upstream contribution.
 - ⬜ Autostart Mixxx on boot, fullscreen, no desktop chrome.
 - ⬜ systemd: upstream ships **user** services, which need a live session. Either
   `loginctl enable-linger` or convert to system units. Record which and why.
-- ⬜ **On-screen keyboard.** A headless touch box has no other way to type a search. The
-  marcosseris fork's `search-osk` patch is the known solution; evaluate it against
-  `squeekboard`/`wvkbd` before patching Mixxx.
+- ⬜ **On-screen keyboard — probably already solved.** Raspberry Pi OS Bookworm and later
+  ship **Squeekboard** by default, auto-popping when text input is focused, with a
+  taskbar toggle. That may remove the need for the marcosseris `search-osk` Mixxx patch
+  entirely.
+
+  Verify rather than assume: Squeekboard's auto-show relies on the app declaring intent
+  through the Wayland text-input protocol, and Qt apps running under XWayland often do
+  not. Test whether focusing Mixxx's search box raises it. If it does not, the taskbar
+  toggle is the fallback and `search-osk` is the fix.
 - ⬜ Boot time, and behaviour when the mixer is absent or unplugged at boot.
 
 ---
@@ -251,10 +327,12 @@ Honest list, so nothing here comes as a surprise:
 | Unknown | Found out in |
 |---|---|
 | Does high-speed iso work on the Pi 5's xHCI? | Phase 3 |
-| Does the 1920×480 panel drive at native res without custom timings? | Phase 2 |
+| Does the `-v2` overlay bring the panel up on the Pi 5's DSI1? | Phase 2 |
+| Does rotated touch line up with the rotated display? | Phase 2 |
 | Which USB channel pair is which deck? | Phase 4 |
 | Do the skins survive Mixxx 2.5 instead of 2.6-dev? | Phase 5 |
 | Do the OK/WARN/ERR states render correctly? | Phase 6 |
+| Does Squeekboard auto-raise for Mixxx's search box? | Phase 9 |
 | Are the 18 seeded DJM-T1 bindings right? | Phase 7 |
 | Does the kernel driver work at all? | Phase 8 |
 | Does the interlock need re-arming across PCM open/close? | Phase 8 |

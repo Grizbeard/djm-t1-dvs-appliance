@@ -35,16 +35,27 @@ throttling is a bad combination. Required:
 
 ## Display and control
 
-Mixxx needs a GUI. Decide between a small HDMI panel mounted in the chassis and a
-headless setup driven entirely from the mixer's controls. The mapping covers browse,
-load and transport, so a small display is sufficient for track selection.
+**Waveshare 8.8-DSI-TOUCH-A.** 8.8" IPS, native 480x1920 portrait, driven over DSI (not
+HDMI) and mounted rotated 90 degrees to give the 1920x480 landscape the skin targets.
+10-point capacitive touch; display IC OTA7290B, touch IC GT9271.
+
+Three things it imposes on the rest of the build:
+
+- **Its own 5V feed from the GPIO header**, at **>= 0.43 A**. The DSI ribbon carries no
+  power, and under-feeding it fails to start or damages it. This is a PSU sizing input,
+  not a detail.
+- **A 22-pin reversed FFC cable** for Pi 5 - Pi 4 and earlier take the 15-pin part.
+- **M2.5 mounting**, Pi to the back of the display, which largely settles how the two
+  sit relative to each other inside the chassis.
+
+Full setup, overlay lines and rotation in docs/bring-up.md Phase 2.
 
 ## To record here
 
 - [ ] Pi 5 model and RAM
 - [ ] Storage — SD vs NVMe HAT (NVMe is worth it for library and waveform cache)
 - [ ] Power supply decision
-- [ ] Display decision
+- [x] Display decision — Waveshare 8.8-DSI-TOUCH-A (8.8" IPS, 480x1920 native, DSI, 10-point touch). See docs/bring-up.md Phase 2.
 - [ ] Enclosure and mounting
 - [ ] Measured temperatures under sustained load
 - [ ] Whether xHCI isochronous streaming is stable (verify early)
