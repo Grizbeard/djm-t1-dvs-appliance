@@ -208,3 +208,26 @@ Fixed on the `terminal-skin` branch of the Mixxx tree, which Terminal-wide's
 Not covered: the "time until next mark" digits overlay, which is off by default
 and would still render on its side, and the legacy non-allshader renderers,
 which are left as they were.
+
+
+A second, much smaller patch on the same branch: **an effect chain preset
+cannot be deleted from the skin.** `WEffectChainPresetButton`'s menu offers
+`Update Preset`, `Rename Preset` and `Save As New Preset...`, but nothing to
+remove one — deleting is only in Preferences -> Effects, which on a panel with
+no keyboard and 480 rows is not somewhere an operator goes mid-set. The
+asymmetry looks like an omission rather than a decision, and it is worth
+offering upstream on its own.
+
+`EffectChainPresetManager::deletePreset()` already did the whole job — it asks
+for confirmation with a Yes/No box that needs no keyboard, refuses the
+read-only `---` preset, removes the file and drops the preset from both lists —
+so the patch is an action that calls it, shown only when a deletable preset is
+actually loaded.
+
+What it also had to add: the manager announced a rename to every chain
+(`effectChainPresetRenamed`, so a chain holding the old name updates itself)
+but said nothing about a deletion, which left a chain naming a preset that no
+longer existed. A matching `effectChainPresetDeleted` signal and a slot that
+clears the name puts the chain in the same state as one built by hand. That
+hole was reachable from Preferences before this patch existed; the menu item
+just makes it easy to hit.

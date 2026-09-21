@@ -165,9 +165,16 @@ The header of each unit carries a chain preset selector and, beside it, the
 menu button. Between them they cover both directions: the selector recalls -
 pick a preset and the whole unit, all three slots and their parameters, loads
 from it - and the menu saves, with `Update Preset` over the loaded one,
-`Save As New Preset...` for a new one, and a `Save snapshot` per slot for a
-single effect's settings. The five presets Mixxx ships (`res/effects/chains`)
-are in both lists from the first launch.
+`Save As New Preset...` for a new one, `Delete Preset` for one you are done
+with, and a `Save snapshot` per slot for a single effect's settings. The five
+presets Mixxx ships (`res/effects/chains`) are in both lists from the first
+launch.
+
+`Delete Preset` is the one item here that upstream's menu does not have - it
+needs the core patch described in `docs/skins.md`. Deleting is permanent: the
+shipped presets are copied into your settings directory on first run and are
+ordinary files after that, so deleting one of those deletes it for good too
+(Preferences -> Effects -> Import brings it back from `res/effects/chains`).
 
 Each unit gets its own pair, so a preset can be recalled into either one; which
 unit a widget belongs to is the single `<EffectUnit>` value already passed down
