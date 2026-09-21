@@ -371,15 +371,18 @@
                    that reads back into the widget is the one that drives the
                    rendered state. -->
               <!-- The glyph rather than the word: it says the same thing in
-                   a third of the width, and it is the same mark the loop
-                   controls carry on the DJM-T1 itself. -->
+                   a third of the width. Two parallel runs with an arrow at
+                   each end, not a circle - a rectangle is the shape everything
+                   else here is drawn out of, and it is also closer to what a
+                   loop over a track actually is: out to the end, back to the
+                   start, along the same stretch. -->
               <PushButton>
                 <ObjectName>LoopActivate</ObjectName>
                 <TooltipId>beatloop_activate</TooltipId>
-                <Size>48f,42f</Size>
+                <Size>54f,42f</Size>
                 <NumberStates>2</NumberStates>
-                <State><Number>0</Number><Text>&#8635;</Text></State>
-                <State><Number>1</Number><Text>&#8635;</Text></State>
+                <State><Number>0</Number><Text>&#8646;</Text></State>
+                <State><Number>1</Number><Text>&#8646;</Text></State>
                 <Connection>
                   <ConfigKey><Variable name="Group"/>,beatloop_activate</ConfigKey>
                   <ButtonState>LeftButton</ButtonState>
@@ -418,7 +421,7 @@
                 <SetVariable name="ObjectName">JumpBack</SetVariable>
                 <SetVariable name="TooltipId">beatjump_backward</SetVariable>
                 <SetVariable name="Text">&#9664;</SetVariable>
-                <SetVariable name="Size">44f,36f</SetVariable>
+                <SetVariable name="Size">48f,42f</SetVariable>
                 <SetVariable name="ConfigKey"><Variable name="Group"/>,beatjump_backward</SetVariable>
               </Template>
               <BeatSpinBox>
@@ -431,7 +434,7 @@
                 <SetVariable name="ObjectName">JumpForward</SetVariable>
                 <SetVariable name="TooltipId">beatjump_forward</SetVariable>
                 <SetVariable name="Text">&#9654;</SetVariable>
-                <SetVariable name="Size">44f,36f</SetVariable>
+                <SetVariable name="Size">48f,42f</SetVariable>
                 <SetVariable name="ConfigKey"><Variable name="Group"/>,beatjump_forward</SetVariable>
               </Template>
             </Children>

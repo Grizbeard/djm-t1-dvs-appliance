@@ -136,9 +136,16 @@ so they are filled boxes with the ink knocked out, each in its family's hue:
 loop yellow, beatjump magenta on the Btop palette, and the scheme's one hue on
 the phosphor palettes. A sunken box with a border, which is what they were,
 reads as a field you are meant to type in. The hue also says which of the two
-you are looking at before you have read the number. The loop toggle carries the
-loop glyph rather than the word: same meaning, a third of the width, and the
-same mark that is on the DJM-T1's own loop buttons.
+you are looking at before you have read the number.
+
+The loop toggle carries a glyph rather than the word: two parallel runs with an
+arrow at each end, which is a rectangle like everything else in this skin and
+closer to what a loop over a track is - out to the end, back to the start,
+along the same stretch - than a circle is. The three marks on the row are set
+at 46px and 32px against the row's 20px lettering, which looks wrong written
+down and is right on the panel: an arrow glyph carries perhaps a third of the
+ink a letter of the same point size does, so sizing it by the number gives a
+mark half the weight of the words around it.
 
 **Overview placement.** Three: in the centre column under the waveform lanes,
 inside each deck column, or a full-width row under the whole page with deck 1

@@ -145,12 +145,12 @@ QToolTip {
 }
 
 #DeckRateSign {
-  font-size: 15px;
+  font-size: 19px;
   qproperty-alignment: 'AlignCenter';
 }
 
 #DeckRateRange {
-  font-size: 15px;
+  font-size: 19px;
   qproperty-alignment: 'AlignLeft | AlignVCenter';
 }
 
@@ -202,10 +202,25 @@ QToolTip {
   padding: 0px;
 }
 
-/* The loop glyph, a size up from the row's lettering: a single mark at the
-   same 20px as a word reads lighter than the word does. */
-#LoopActivate {
-  font-size: 26px;
+/* The three marks on this row, all a size up from the row's lettering: a
+   single glyph at the same 20px as a word reads lighter than the word does,
+   and these three are the row's only controls. */
+/* These two sizes look wrong written down and are right on the panel. An arrow
+   glyph carries far less ink than a letter of the same point size - the loop
+   mark's two runs are about a third of its em - so matching the row's 20px
+   lettering by number gives a mark half the weight of the words around it.
+
+   Both selectors name the row as well as the button: the row's own
+   "#DeckLoopJumpRow WPushButton" rule above is an id plus a type, which
+   outranks a bare id, so "#LoopActivate" alone loses to it and silently does
+   nothing. */
+#DeckLoopJumpRow #LoopActivate {
+  font-size: 46px;
+}
+
+#DeckLoopJumpRow #JumpBack,
+#DeckLoopJumpRow #JumpForward {
+  font-size: 32px;
 }
 
 /* The length readouts. Their steppers are sized away rather than merely
