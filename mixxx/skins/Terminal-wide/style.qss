@@ -154,9 +154,11 @@ QToolTip {
   qproperty-alignment: 'AlignLeft | AlignVCenter';
 }
 
-/* The alignment only bites when key colours are off. With them on, WKey paints
-   the text itself and hard-codes Qt::AlignCenter (wkey.cpp, paintEvent), which
-   is why the key reads centred in its half of the row. */
+/* Left, under the time, which is also left. This needs the wkey patch on the
+   terminal-skin branch: upstream WKey paints its own text with a hard-coded
+   Qt::AlignCenter whenever key colours are on, and ignores both <Alignment>
+   and the stylesheet. Without the patch the key reads centred instead - wrong
+   but harmless. */
 #DeckKey {
   font-size: 25px;
   qproperty-alignment: 'AlignLeft | AlignVCenter';

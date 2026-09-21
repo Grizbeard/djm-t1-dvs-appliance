@@ -231,3 +231,16 @@ longer existed. A matching `effectChainPresetDeleted` signal and a slot that
 clears the name puts the chain in the same state as one built by hand. That
 hole was reachable from Preferences before this patch existed; the menu item
 just makes it easy to hit.
+
+
+And a third, smaller still: **`WKey` ignores the alignment a skin gives it.**
+With key colours on it paints its own text - it has a two-tone colour bar to
+draw beside it - and the paint path hard-codes `Qt::AlignCenter`, so both
+`<Alignment>` and a stylesheet's `qproperty-alignment` are silently dropped.
+Shade's own skin has a comment about it: "CSS alignments not respected see bug
+#5459, lets call <Alignment>" - and `<Alignment>` does not work either.
+
+The patch makes the paint path use `alignment()` and sets `Qt::AlignCenter` as
+the widget's default in the constructor, so a skin that asks for nothing looks
+exactly as it did and a skin that asks gets what it asked for. Every stock skin
+either sets centre explicitly or is unaffected.

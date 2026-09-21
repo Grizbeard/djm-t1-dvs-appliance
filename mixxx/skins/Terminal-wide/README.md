@@ -125,9 +125,11 @@ that makes the number mean something. The captions were costing a line the
 panel did not have to spare, and their absence is what lets all of it fit
 without the row above clipping into it.
 
-The key reads centred rather than from the left: with key colours on, `WKey`
-paints its own text and hard-codes `Qt::AlignCenter`, so the stylesheet's
-alignment only applies when they are off.
+The key reads from the left, under the time, which needs the second-smallest
+patch on the `terminal-skin` branch: with key colours on, upstream `WKey` paints
+its own text with a hard-coded `Qt::AlignCenter` and ignores both `<Alignment>`
+and the stylesheet. Without that patch the key sits centred in its half of the
+row - wrong but harmless.
 
 **Overview placement.** Three: in the centre column under the waveform lanes,
 inside each deck column, or a full-width row under the whole page with deck 1
