@@ -189,10 +189,9 @@ QToolTip {
   margin-top: 3px;
 }
 
-/* The gap between the loop half and the jump half of the shared row. */
-#DeckJumpGroup {
-  margin-left: 10px;
-}
+/* The gaps in this row come from the fillers either side of each half, not
+   from a margin: the halves show and hide independently, and a margin on one
+   of them leaves the row lopsided whenever the other is hidden. */
 
 #DeckHotcueRow WPushButton,
 #DeckLoopJumpRow WPushButton {

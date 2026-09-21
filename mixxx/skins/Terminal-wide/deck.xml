@@ -341,12 +341,25 @@
            The spin box is what gives Mixxx's own formatting of a beat count:
            1/8 and 0.5 read as readily as 32. Its steppers are sized away in
            the stylesheet - the length is a readout, and a stepper would be one
-           more thing to press. -->
+           more thing to press.
+
+           Both readouts are a fixed width, and three fillers - before, between
+           and after - spread the two halves across the row. Letting them
+           expand instead tied the size of a two-character number to the deck
+           column's width, which is a setting about how much room the deck gets
+           and has nothing to say about how wide "32" is. -->
       <WidgetGroup>
         <ObjectName>DeckLoopJumpRow</ObjectName>
         <Layout>horizontal</Layout>
         <SizePolicy>me,max</SizePolicy>
         <Children>
+
+          <WidgetGroup>
+            <ObjectName>DeckLoopJumpFiller</ObjectName>
+            <Layout>horizontal</Layout>
+            <SizePolicy>me,me</SizePolicy>
+            <Children/>
+          </WidgetGroup>
 
           <WidgetGroup>
             <ObjectName>DeckLoopGroup</ObjectName>
@@ -376,7 +389,7 @@
               <BeatSpinBox>
                 <ObjectName>LoopSize</ObjectName>
                 <TooltipId>beatloop_size</TooltipId>
-                <Size>0me,42f</Size>
+                <Size>84f,42f</Size>
                 <Value><Variable name="Group"/>,beatloop_size</Value>
               </BeatSpinBox>
             </Children>
@@ -384,6 +397,13 @@
               <ConfigKey persist="true">[Skin],show_loop_controls</ConfigKey>
               <BindProperty>visible</BindProperty>
             </Connection>
+          </WidgetGroup>
+
+          <WidgetGroup>
+            <ObjectName>DeckLoopJumpFiller</ObjectName>
+            <Layout>horizontal</Layout>
+            <SizePolicy>me,me</SizePolicy>
+            <Children/>
           </WidgetGroup>
 
           <WidgetGroup>
@@ -401,7 +421,7 @@
               <BeatSpinBox>
                 <ObjectName>JumpSize</ObjectName>
                 <TooltipId>beatjump_size</TooltipId>
-                <Size>0me,42f</Size>
+                <Size>84f,42f</Size>
                 <Value><Variable name="Group"/>,beatjump_size</Value>
               </BeatSpinBox>
               <Template src="skin:templates/push_button.xml">
@@ -416,6 +436,13 @@
               <ConfigKey persist="true">[Skin],show_beatjump_controls</ConfigKey>
               <BindProperty>visible</BindProperty>
             </Connection>
+          </WidgetGroup>
+
+          <WidgetGroup>
+            <ObjectName>DeckLoopJumpFiller</ObjectName>
+            <Layout>horizontal</Layout>
+            <SizePolicy>me,me</SizePolicy>
+            <Children/>
           </WidgetGroup>
 
         </Children>

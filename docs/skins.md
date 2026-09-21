@@ -244,3 +244,9 @@ The patch makes the paint path use `alignment()` and sets `Qt::AlignCenter` as
 the widget's default in the constructor, so a skin that asks for nothing looks
 exactly as it did and a skin that asks gets what it asked for. Every stock skin
 either sets centre explicitly or is unaffected.
+
+A second commit gives the same paint path a 4px gap between the colour bar and
+the text, which were butted together, and measures and draws the text in one
+rect taken from the same origin as the bar - it was drawn at an absolute 4px
+and elided against the full widget width, which is the bar's right edge and the
+drawable width only while the widget has no padding of its own.
