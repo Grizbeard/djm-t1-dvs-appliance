@@ -116,6 +116,19 @@ by `scripts/preview-terminal-wide.ps1` rather than asserted by the skin: a skin
 attribute that sets a value every launch is not a default, it is an override of
 whatever the operator last chose. The route buttons change it live.
 
+**Time and tempo.** Time and bpm share a row, key and rate the next, and the
+two right-hand boxes line up: bpm over rate, because the bpm you are reading is
+the bpm that rate produced. Neither of the lower two has a caption - "key" over
+a value that reads 6A is a label for someone who has never seen a deck before -
+and the rate's window rides on its own line as "0.00 +-8", which is the piece
+that makes the number mean something. The captions were costing a line the
+panel did not have to spare, and their absence is what lets all of it fit
+without the row above clipping into it.
+
+The key reads centred rather than from the left: with key colours on, `WKey`
+paints its own text and hard-codes `Qt::AlignCenter`, so the stylesheet's
+alignment only applies when they are off.
+
 **Overview placement.** Three: in the centre column under the waveform lanes,
 inside each deck column, or a full-width row under the whole page with deck 1
 on the left half and deck 2 on the right. The last is the widest a whole track

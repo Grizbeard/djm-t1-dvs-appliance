@@ -124,8 +124,9 @@ QToolTip {
   qproperty-alignment: 'AlignLeft | AlignVCenter';
 }
 
-#DeckKeyBox {
-  margin-left: 6px;
+/* Mirrors the bpm box above it. */
+#DeckRateBox {
+  margin-left: 8px;
 }
 
 #DeckBpm {
@@ -133,19 +134,32 @@ QToolTip {
   qproperty-alignment: 'AlignRight | AlignVCenter';
 }
 
+/* Rate, sign and range are one reading - "0.00 +-8" - so the number ends
+   where the sign begins and the range follows it, and the group lands near the
+   middle of the box without any of the three being centred in its own span.
+   The range is the smaller of the two: it changes when you change the pitch
+   *window*, not when you move the platter. */
 #DeckRate {
   font-size: 25px;
-  qproperty-alignment: 'AlignLeft | AlignVCenter';
+  qproperty-alignment: 'AlignRight | AlignVCenter';
+}
+
+#DeckRateSign {
+  font-size: 15px;
+  qproperty-alignment: 'AlignCenter';
 }
 
 #DeckRateRange {
-  font-size: 13px;
-  qproperty-alignment: 'AlignLeft | AlignBottom';
+  font-size: 15px;
+  qproperty-alignment: 'AlignLeft | AlignVCenter';
 }
 
+/* The alignment only bites when key colours are off. With them on, WKey paints
+   the text itself and hard-codes Qt::AlignCenter (wkey.cpp, paintEvent), which
+   is why the key reads centred in its half of the row. */
 #DeckKey {
   font-size: 25px;
-  qproperty-alignment: 'AlignRight | AlignVCenter';
+  qproperty-alignment: 'AlignLeft | AlignVCenter';
 }
 
 /************** deck buttons *************************************************/

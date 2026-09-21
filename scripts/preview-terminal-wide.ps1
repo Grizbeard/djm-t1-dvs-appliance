@@ -42,11 +42,37 @@ if (-not (Test-Path $Exe)) { throw "no Mixxx binary at $Exe" }
 if (-not (Test-Path $skinSource)) { throw "no skin at $skinSource" }
 
 # Refresh the installed copy so the launch always shows the current edit.
+#
+# Copy the *contents* with -Force rather than deleting the directory first.
+# Deleting it and copying the source over it is the obvious way to write this
+# and it fails silently here: a shell inside the Claude desktop app's container
+# cannot really delete a host-side directory, so the delete appears to succeed,
+# the directory survives, and Copy-Item then puts the source *inside* it as
+# skins/Terminal-wide/Terminal-wide. Mixxx goes on reading the top level, which
+# is by then a mixture of old and new files - an edit that does not appear in
+# the preview and nothing to say why.
 $skinsDir = Join-Path $SettingsPath "skins"
 New-Item -ItemType Directory -Force $skinsDir | Out-Null
 $skinTarget = Join-Path $skinsDir $skinName
-if (Test-Path $skinTarget) { Remove-Item -Recurse -Force $skinTarget }
-Copy-Item -Recurse $skinSource $skinTarget
+New-Item -ItemType Directory -Force $skinTarget | Out-Null
+$nested = Join-Path $skinTarget $skinName
+if (Test-Path $nested) { Remove-Item -Recurse -Force $nested -ErrorAction SilentlyContinue }
+Copy-Item -Recurse -Force (Join-Path $skinSource "*") $skinTarget
+
+# Then check it actually took, because the failure mode above is invisible.
+$stale = @()
+foreach ($src in Get-ChildItem -Recurse -File $skinSource) {
+    $rel = $src.FullName.Substring($skinSource.Length + 1)
+    $dst = Join-Path $skinTarget $rel
+    if (-not (Test-Path $dst)) { $stale += $rel; continue }
+    if ((Get-Item $dst).LastWriteTime -lt $src.LastWriteTime) { $stale += $rel }
+}
+if ($stale.Count) {
+    Write-Output ("warning: these skin files did not install and the preview " +
+        "will show the previous version of them: " + ($stale -join ", "))
+} else {
+    Write-Output "installed skin matches the source"
+}
 
 # Mixxx splices the resource path straight into the skin stylesheet and Qt's CSS
 # parser eats backslashes inside url(), so pass forward slashes.

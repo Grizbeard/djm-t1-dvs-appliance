@@ -259,6 +259,7 @@ WEffectChainPresetButton QMenu::separator {
 /* ------------------------------------------------------------ typography -- */
 /* Captions are dim lowercase words; values are bright. */
 #DeckFieldLabel,
+#DeckRateSign,
 #DeckRateRange,
 WTrackTableViewHeader,
 WTrackTableViewHeader::section {
