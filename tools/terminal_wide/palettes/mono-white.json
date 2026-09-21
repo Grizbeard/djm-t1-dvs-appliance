@@ -36,6 +36,7 @@
     "play": "green",
     "cue": "green",
     "loop": "green",
+    "jump": "green",
     "sync": "green",
     "fx": "green",
     "rec": "green",

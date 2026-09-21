@@ -484,13 +484,36 @@ WTrackProperty,
   color: {{fg}};
 }
 
-WBeatSpinBox,
-#LoopSize, #JumpSize {
+WBeatSpinBox {
   background-color: {{sunken}};
   border: 1px solid {{border}};
   color: {{fg_hi}};
   selection-background-color: {{select}};
   selection-color: {{select_text}};
+}
+
+/* The two lengths are the row's reason for existing - everything else on it is
+   feedback about a button the controller owns - so they get the filled box with
+   the ink knocked out, and each takes its family's hue: loop the loop hue,
+   beatjump its own. A sunken box with a border reads as a field you are meant
+   to type in, which these are not; a filled one reads as a readout, and the hue
+   says which of the two you are looking at without reading the number at all.
+   On a one-hue scheme the two come out the same colour, which is as much as a
+   single hue can say. */
+#LoopSize {
+  background-color: {{loop}};
+  border: none;
+  color: {{bg}};
+  selection-background-color: {{bg}};
+  selection-color: {{loop}};
+}
+
+#JumpSize {
+  background-color: {{jump}};
+  border: none;
+  color: {{bg}};
+  selection-background-color: {{bg}};
+  selection-color: {{jump}};
 }
 
 WBeatSpinBox:focus {

@@ -9,11 +9,16 @@
 #     looking at is not the panel's layout at all. Pinning the scale factor to 1
 #     makes logical pixels physical ones.
 #
-#   * Client area, not window size. The title bar and frame are drawn by Windows
-#     at the system DPI, so they are ~58px of chrome that has nothing to do with
-#     Mixxx. This measures the frame and sizes the window so the *client* area is
-#     exactly the panel, and hides the menu bar (it still drops down on Alt) so
-#     the skin gets all 480 rows the appliance will give it.
+#   * Client area, not window size, and no menu bar inside it. The title bar
+#     and frame are drawn by Windows at the system DPI, so they are ~58px of
+#     chrome that has nothing to do with Mixxx; this measures the frame and
+#     sizes the window so the *client* area is exactly the panel. The menu bar
+#     is inside that client area and would take ~28 of the 480 rows, so it is
+#     hidden (it still drops down on Alt) - which needs show_menubar_hint 0 as
+#     well as hide_menubar 1, because otherwise Mixxx asks on the first launch
+#     and writes hide_menubar from the answer. Dismissing that prompt counts as
+#     "show", which is how this preview spent a while quietly rendering the
+#     skin into 452 rows instead of 480.
 #
 #   * The skin lives outside any Mixxx res/ tree, so it has to be installed where
 #     Mixxx looks for a user skin. This refreshes that copy on every run, which
@@ -130,9 +135,12 @@ $cfgPath = Join-Path $SettingsPath "mixxx.cfg"
 if (Test-Path $cfgPath) {
     # Keep an existing library and preferences; only force what this preview is for.
     $cfg = Get-Content $cfgPath
-    $cfg = $cfg | Where-Object { $_ -notmatch '^(ResizableSkin|Scheme|Path|hide_menubar) ' }
+    $cfg = $cfg | Where-Object {
+        $_ -notmatch '^(ResizableSkin|Scheme|Path|hide_menubar|show_menubar_hint) '
+    }
     $cfg = @("[Config]", "ResizableSkin $skinName", "Scheme $Scheme", "Path $ResourcePath",
-             "hide_menubar $hideMenuBar") + ($cfg | Where-Object { $_ -ne "[Config]" })
+             "hide_menubar $hideMenuBar", "show_menubar_hint 0") +
+           ($cfg | Where-Object { $_ -ne "[Config]" })
     Set-Content -Path $cfgPath -Value (Add-Seeds $cfg) -Encoding utf8
 } else {
     Set-Content -Path $cfgPath -Encoding utf8 -Value @"
@@ -141,6 +149,7 @@ ResizableSkin $skinName
 Scheme $Scheme
 Path $ResourcePath
 hide_menubar $hideMenuBar
+show_menubar_hint 0
 [Waveform]
 WaveformType 12
 [Controls]
@@ -276,4 +285,7 @@ Start-Sleep -Milliseconds 500
 [void][Preview]::SetForegroundWindow($main.H)
 
 Write-Output "client area $($cr.Right - $cr.Left)x$($cr.Bottom - $cr.Top) (asked for ${Width}x${Height}), scheme $Scheme"
+if (-not $ShowMenuBar) {
+    Write-Output "menu bar hidden, so the skin has the whole client area - the same canvas it gets fullscreen on the panel"
+}
 Write-Output "Mixxx is running; close the window when you are done."

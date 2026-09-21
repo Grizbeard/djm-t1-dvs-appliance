@@ -202,6 +202,12 @@ QToolTip {
   padding: 0px;
 }
 
+/* The loop glyph, a size up from the row's lettering: a single mark at the
+   same 20px as a word reads lighter than the word does. */
+#LoopActivate {
+  font-size: 26px;
+}
+
 /* The length readouts. Their steppers are sized away rather than merely
    unstyled: the length is a readout, and a stepper would be one more thing to
    press on a row that is meant to have almost nothing. */

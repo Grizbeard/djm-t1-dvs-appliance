@@ -370,13 +370,16 @@
                    display-only connection, in that order: the last connection
                    that reads back into the widget is the one that drives the
                    rendered state. -->
+              <!-- The glyph rather than the word: it says the same thing in
+                   a third of the width, and it is the same mark the loop
+                   controls carry on the DJM-T1 itself. -->
               <PushButton>
                 <ObjectName>LoopActivate</ObjectName>
                 <TooltipId>beatloop_activate</TooltipId>
-                <Size>62f,42f</Size>
+                <Size>48f,42f</Size>
                 <NumberStates>2</NumberStates>
-                <State><Number>0</Number><Text>loop</Text></State>
-                <State><Number>1</Number><Text>loop</Text></State>
+                <State><Number>0</Number><Text>&#8635;</Text></State>
+                <State><Number>1</Number><Text>&#8635;</Text></State>
                 <Connection>
                   <ConfigKey><Variable name="Group"/>,beatloop_activate</ConfigKey>
                   <ButtonState>LeftButton</ButtonState>

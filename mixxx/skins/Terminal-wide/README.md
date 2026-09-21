@@ -131,6 +131,15 @@ its own text with a hard-coded `Qt::AlignCenter` and ignores both `<Alignment>`
 and the stylesheet. Without that patch the key sits centred in its half of the
 row - wrong but harmless.
 
+**Loop and beatjump.** Both lengths are readouts - the controller sets them -
+so they are filled boxes with the ink knocked out, each in its family's hue:
+loop yellow, beatjump magenta on the Btop palette, and the scheme's one hue on
+the phosphor palettes. A sunken box with a border, which is what they were,
+reads as a field you are meant to type in. The hue also says which of the two
+you are looking at before you have read the number. The loop toggle carries the
+loop glyph rather than the word: same meaning, a third of the width, and the
+same mark that is on the DJM-T1's own loop buttons.
+
 **Overview placement.** Three: in the centre column under the waveform lanes,
 inside each deck column, or a full-width row under the whole page with deck 1
 on the left half and deck 2 on the right. The last is the widest a whole track
