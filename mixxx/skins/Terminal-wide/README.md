@@ -104,16 +104,17 @@ Browsing is the dominant touch interaction here, so it gets the whole panel
 rather than a strip.
 
 **fx** — both effect units, side by side, with everything each one has:
-routing, the unit enable, mix mode, dry/wet and super knobs, and three slots
-each with its own enable, effect selector, meta knob and first three
-parameters.
+routing, the unit enable, mix mode, dry/wet and super knobs, a chain preset
+selector and its menu, and three slots each with its own enable, effect
+selector, meta knob and parameters.
 
 Effects were tried first as narrow columns flanking the decks. The columns had
 room for the three selectors and nothing else, so they became a page — where
-nothing competes with the decks for the 480 rows the panel has. Unit 1 starts
-routed to deck 1 and unit 2 to deck 2; `skin.xml` asserts that at every launch
-with `persist="false"` rather than leaving it as a preference that drifts, and
-the route buttons change it live.
+nothing competes with the decks for the 480 rows the panel has. Unit 1 on deck
+1 and unit 2 on deck 2 is the appliance's default, seeded into a fresh config
+by `scripts/preview-terminal-wide.ps1` rather than asserted by the skin: a skin
+attribute that sets a value every launch is not a default, it is an override of
+whatever the operator last chose. The route buttons change it live.
 
 **Overview placement.** Three: in the centre column under the waveform lanes,
 inside each deck column, or a full-width row under the whole page with deck 1
@@ -157,6 +158,31 @@ shipping no assets at all. The arc is centred on the widget at `ArcRadius`, so
 the knob has to be at least `2 × ArcRadius + ArcThickness` in both directions —
 20 and 5 wanted 45px out of a 44px knob, which is exactly the sliver that was
 being clipped off.
+
+## FX chain presets
+
+The header of each unit carries a chain preset selector and, beside it, the
+menu button. Between them they cover both directions: the selector recalls -
+pick a preset and the whole unit, all three slots and their parameters, loads
+from it - and the menu saves, with `Update Preset` over the loaded one,
+`Save As New Preset...` for a new one, and a `Save snapshot` per slot for a
+single effect's settings. The five presets Mixxx ships (`res/effects/chains`)
+are in both lists from the first launch.
+
+Each unit gets its own pair, so a preset can be recalled into either one; which
+unit a widget belongs to is the single `<EffectUnit>` value already passed down
+`fx_unit.xml`, which is all `EffectWidgetUtils::getEffectChainFromNode` reads.
+
+The selector sits empty until a preset is loaded - an empty box means the chain
+is something you built by hand, not that nothing is loaded.
+
+Two things about this on the appliance. The menu button has no text of its own -
+`WEffectChainPresetButton` takes none from the skin - so the stylesheet centres
+its menu indicator and lets the arrow be the glyph, which is why this feature
+still ships no image assets. And `Save As New Preset...` and `Rename Preset`
+open a name-entry dialog: recall, `Update Preset` and the snapshots all work
+with a finger alone, but naming a new preset needs a keyboard, or the on-screen
+one from the `search-osk` patch in `docs/skins.md`.
 
 **options** — everything that is a setting rather than a performance control:
 

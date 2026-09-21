@@ -5,8 +5,11 @@
     and super knobs, and its three slots.
 
     Routing is a pair of buttons rather than a fixed wiring, so a unit can be
-    put on the other deck or on both mid-set. skin.xml still asserts unit 1 to
-    deck 1 and unit 2 to deck 2 at every launch, which is where they start.
+    put on the other deck or on both mid-set. Unit 1 starts on deck 1 and unit 2
+    on deck 2, seeded in the config rather than asserted by the skin.
+
+    The header also carries the unit's chain preset - saved and recalled as a
+    whole, all three slots at once.
 
   Variables:
     FxUnit: 1 or 2
@@ -30,13 +33,13 @@
         <Children>
           <Label>
             <ObjectName>FxUnitLabel</ObjectName>
-            <Size>86f,42f</Size>
+            <Size>76f,42f</Size>
             <Text>fx <Variable name="FxUnit"/></Text>
           </Label>
           <PushButton>
             <ObjectName>FxUnitEnable</ObjectName>
             <TooltipId>EffectUnit_enabled</TooltipId>
-            <Size>82f,42f</Size>
+            <Size>76f,42f</Size>
             <NumberStates>2</NumberStates>
             <State><Number>0</Number><Text>on</Text></State>
             <State><Number>1</Number><Text>on</Text></State>
@@ -48,7 +51,7 @@
           <PushButton>
             <ObjectName>FxMixMode</ObjectName>
             <TooltipId>EffectUnit_mix_mode</TooltipId>
-            <Size>100f,42f</Size>
+            <Size>84f,42f</Size>
             <NumberStates>2</NumberStates>
             <State><Number>0</Number><Text>d/w</Text></State>
             <State><Number>1</Number><Text>d+w</Text></State>
@@ -73,22 +76,41 @@
             <SetVariable name="ConfigKey"><Variable name="FxUnitGroup"/>,super1</SetVariable>
           </Template>
 
-          <WidgetGroup>
-            <ObjectName>FxHeaderFiller</ObjectName>
-            <Layout>horizontal</Layout>
-            <SizePolicy>me,me</SizePolicy>
-            <Children/>
-          </WidgetGroup>
+          <!-- Chain presets: the whole unit - all three slots, their effects and
+               their parameters - saved and recalled as one thing.
+
+               Two widgets rather than one. The selector is the recall path and,
+               more to the point, the only thing on the page that says which
+               preset is loaded. The button beside it opens the menu that saves:
+               update the current preset, rename it, save as a new one, and take
+               per-slot snapshots. The menu lists the presets too, so it can
+               recall as well - but a combo box is the better target for that on
+               a touchscreen, and a name you can read beats a name you have to
+               open a menu to see. -->
+          <EffectChainPresetSelector>
+            <ObjectName>FxPresetSelector</ObjectName>
+            <TooltipId>EffectUnit_chain_selector</TooltipId>
+            <SizePolicy>me,f</SizePolicy>
+            <Size>0me,42f</Size>
+            <EffectUnit><Variable name="FxUnit"/></EffectUnit>
+          </EffectChainPresetSelector>
+
+          <EffectChainPresetButton>
+            <ObjectName>FxPresetButton</ObjectName>
+            <TooltipId>EffectUnit_chain_preset_menu</TooltipId>
+            <Size>76f,42f</Size>
+            <EffectUnit><Variable name="FxUnit"/></EffectUnit>
+          </EffectChainPresetButton>
 
           <Label>
             <ObjectName>FxRouteLabel</ObjectName>
-            <Size>74f,42f</Size>
+            <Size>56f,42f</Size>
             <Text>route</Text>
           </Label>
           <PushButton>
             <ObjectName>FxRouteButton</ObjectName>
             <TooltipId>EffectUnit_deck_enabled</TooltipId>
-            <Size>68f,42f</Size>
+            <Size>62f,42f</Size>
             <NumberStates>2</NumberStates>
             <State><Number>0</Number><Text>1</Text></State>
             <State><Number>1</Number><Text>1</Text></State>
@@ -100,7 +122,7 @@
           <PushButton>
             <ObjectName>FxRouteButton</ObjectName>
             <TooltipId>EffectUnit_deck_enabled</TooltipId>
-            <Size>68f,42f</Size>
+            <Size>62f,42f</Size>
             <NumberStates>2</NumberStates>
             <State><Number>0</Number><Text>2</Text></State>
             <State><Number>1</Number><Text>2</Text></State>

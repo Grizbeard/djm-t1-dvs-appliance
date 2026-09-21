@@ -171,6 +171,75 @@ WEffectSelector QAbstractItemView::item:hover {
   color: #b2ffb5;
 }
 
+/* --------------------------------------------------------- chain presets -- */
+/* The preset selector is the same object as an effect selector as far as the
+   eye is concerned, so it gets the same treatment - including naming the popup
+   both ways round, since a combo's drop-down is a top-level widget and picks up
+   the platform highlight otherwise. */
+WEffectChainPresetSelector#FxPresetSelector {
+  background-color: #061606;
+  border: 1px solid #164318;
+  color: #33ff3a;
+  selection-background-color: #143b15;
+  selection-color: #b2ffb5;
+}
+
+WEffectChainPresetSelector#FxPresetSelector:hover {
+  border-color: #33ff3a;
+  color: #b2ffb5;
+}
+
+WEffectChainPresetSelector QAbstractScrollArea,
+WEffectChainPresetSelector QAbstractItemView {
+  background-color: #000000;
+  border: 1px solid #246626;
+  color: #33ff3a;
+  selection-background-color: #143b15;
+  selection-color: #b2ffb5;
+  outline: none;
+}
+
+WEffectChainPresetSelector QAbstractItemView::item {
+  color: #33ff3a;
+  background-color: #000000;
+}
+
+WEffectChainPresetSelector QAbstractItemView::item:selected,
+WEffectChainPresetSelector QAbstractItemView::item:hover {
+  background-color: #143b15;
+  color: #b2ffb5;
+}
+
+/* The menu button is navigation, not a latched control - it has no on state to
+   show - so it keeps one block whatever happens. */
+#Mixxx WEffectChainPresetButton#FxPresetButton {
+  background-color: #061606;
+  border: none;
+  color: #33ff3a;
+}
+
+#Mixxx WEffectChainPresetButton#FxPresetButton:hover {
+  background-color: #0c2a0d;
+  color: #b2ffb5;
+}
+
+WEffectChainPresetButton QMenu {
+  background-color: #000000;
+  border: 1px solid #246626;
+  color: #33ff3a;
+}
+
+WEffectChainPresetButton QMenu::item:selected {
+  background-color: #143b15;
+  color: #b2ffb5;
+}
+
+WEffectChainPresetButton QMenu::separator {
+  background-color: #164318;
+  height: 1px;
+  margin: 2px 0px;
+}
+
 /* The deck header is the panel's status line: recessed, with the deck name and
    the timecode state on it. It lights up while the deck is playing, which is
    the only play indicator this skin has. */

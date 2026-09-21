@@ -30,6 +30,11 @@ WTrackTableViewHeader::section,
 WEffectSelector,
 WEffectSelector QAbstractScrollArea,
 WEffectSelector QAbstractItemView,
+WEffectChainPresetSelector,
+WEffectChainPresetSelector QAbstractScrollArea,
+WEffectChainPresetSelector QAbstractItemView,
+WEffectChainPresetButton,
+WEffectChainPresetButton QMenu,
 QMenu,
 QToolTip {
   font-family: "Cascadia Mono", "Consolas", "DejaVu Sans Mono", "Menlo", monospace;
@@ -249,6 +254,42 @@ QToolTip {
 
 #FxSelector QAbstractItemView::item {
   min-height: 42px;
+}
+
+/* Chain presets. The selector reads like the effect selectors beside it; the
+   menu button is a block with a glyph, and its menu gets the same finger-sized
+   rows the drop-downs do. */
+#FxPresetSelector {
+  font-size: 18px;
+  margin: 1px 4px;
+  padding: 0px 8px;
+}
+
+#FxPresetSelector QAbstractItemView::item {
+  min-height: 42px;
+}
+
+#FxPresetButton {
+  font-size: 20px;
+  font-weight: bold;
+  margin: 1px;
+  padding: 0px;
+}
+
+/* The button carries no text of its own - the widget has no <Text> - so the
+   menu indicator is the glyph, and it belongs in the middle of the block
+   rather than tucked in a corner. */
+#FxPresetButton::menu-indicator {
+  subcontrol-origin: margin;
+  subcontrol-position: center center;
+}
+
+/* The preset menu is the one list here that grows without limit - every saved
+   preset is a row, on top of the fixed items - so its rows are tighter than the
+   skin's other menus. At 18px text and 8px padding a row is ~40px, still a
+   finger, and ten of them fit the panel before Qt has to scroll the menu. */
+#FxPresetButton QMenu::item {
+  padding: 8px 16px;
 }
 
 #FxKnobLabel {
