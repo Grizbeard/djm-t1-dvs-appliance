@@ -40,7 +40,7 @@ git -C ~/projects/djm-t1-linux bundle create /tmp/mapping-studio.bundle tools/ma
 ### 0.2 ⬜ Decide the Mixxx version, and accept the consequence
 
 The skins and mapping were developed against Mixxx **`main` (2.6-dev)** on Windows.
-Raspberry Pi OS trixie ships **2.5.x**. Skin XML schemas drift between releases, and
+Raspberry Pi OS trixie tracks Debian stable, which ships **Mixxx 2.5.0**. Skin XML schemas drift between releases, and
 `Terminal-wide` is a large generated skin with a lot of surface to drift against.
 
 - **apt install Mixxx 2.5** — minutes, but the skins are untested against it. Expect to
@@ -54,6 +54,9 @@ information. Building from source is a fallback, not the opening move.
 ---
 
 ## Phase 1 — Pi OS base
+
+> Turn-by-turn for Phases 0-3 on a blank SD card: **[pi-first-boot.md](pi-first-boot.md)**.
+> This section is the summary; that one has the commands.
 
 - ⬜ 64-bit Raspberry Pi OS **trixie**. Matches what the marcosseris Pioneered fork
   targets, so its prebuilt arm64 packages and Pi scripts stay usable as reference.
