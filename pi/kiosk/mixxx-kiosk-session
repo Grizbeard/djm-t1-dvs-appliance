@@ -1,0 +1,16 @@
+#!/bin/sh
+# lightdm session for the appliance: labwc showing only Mixxx.
+#
+# Mirrors /usr/bin/labwc-pi, the stock Pi desktop session, except that labwc
+# gets its own config directory and runs without -m. With -m it would also run
+# the system autostart, which is what brings up the panel and the desktop.
+. /usr/bin/setup_env    # the Pi's XDG and Qt environment (QT_QPA_PLATFORMTHEME, ...)
+
+if raspi-config nonint is_pi ; then
+    export WLR_DRM_FORCE_LIBLIFTOFF=1
+    if ! raspi-config nonint gpu_has_mmu ; then
+        export WLR_RENDERER=pixman
+    fi
+fi
+
+exec /usr/bin/labwc -C "$HOME/.config/labwc-kiosk"

@@ -1,0 +1,5 @@
+[Desktop Entry]
+Type=Application
+Name=DJM-T1 appliance (Mixxx only)
+Comment=labwc running Mixxx fullscreen, with no desktop
+Exec=/usr/local/bin/mixxx-kiosk-session

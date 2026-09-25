@@ -293,10 +293,11 @@ sake as an upstream contribution.
 
 ## Phase 9 — Appliance shell
 
-- 🔶 Autostart Mixxx on boot, fullscreen, no desktop chrome. **Autostart done**
-  (2026-09-25, cold-boot verified; [`pi/autostart/`](../pi/autostart/)). Mixxx
-  waits for the DJM-T1 card and the MIDI bridge before starting. Forced fullscreen
-  and hiding the desktop chrome are not done.
+- ✅ Autostart Mixxx on boot, fullscreen, no desktop chrome. Done 2026-09-25,
+  see [`pi/kiosk/`](../pi/kiosk/). A verbose boot log is rotated for the panel,
+  then lightdm autologins into a labwc session that runs only Mixxx, fullscreen
+  from its first frame. Quitting Mixxx powers the Pi off, a crash restarts it,
+  and a mixer replug restarts it with sound and controls back.
 - ✅ systemd: upstream ships **user** services, which need a live session. Either
   `loginctl enable-linger` or convert to system units. Record which and why.
   **Neither: user services plus autologin**, reasoning in
@@ -310,7 +311,10 @@ sake as an upstream contribution.
   through the Wayland text-input protocol, and Qt apps running under XWayland often do
   not. Test whether focusing Mixxx's search box raises it. If it does not, the taskbar
   toggle is the fallback and `search-osk` is the fix.
-- ⬜ Boot time, and behaviour when the mixer is absent or unplugged at boot.
+- ✅ Boot time, and behaviour when the mixer is absent or unplugged at boot. Mixxx
+  starts 11.4 s after the kernel boots. With the mixer absent it starts anyway
+  after 30 s, then restarts about 20 s after the mixer is plugged in, with sound
+  and controls working (verified 2026-09-25).
 
 ---
 

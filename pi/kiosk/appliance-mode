@@ -1,0 +1,27 @@
+#!/bin/sh
+# Choose what the Pi logs into at boot.
+#
+#   appliance-mode             show the current choice
+#   appliance-mode kiosk       Mixxx only (the appliance)
+#   appliance-mode desktop     the regular Pi desktop, for maintenance
+#
+# Add "now" to switch immediately. That restarts the display manager, which
+# closes Mixxx; the kiosk supervisor sees the session ending and does not power
+# off.
+CONF=/etc/lightdm/lightdm.conf
+current=$(sed -n 's/^autologin-session=//p' "$CONF")
+
+case "${1:-}" in
+    kiosk)   session=mixxx-kiosk ;;
+    desktop) session=rpd-labwc ;;
+    "")      echo "autologin session: $current"; exit 0 ;;
+    *)       echo "usage: appliance-mode [kiosk|desktop] [now]" >&2; exit 2 ;;
+esac
+
+sudo sed -i "s/^autologin-session=.*/autologin-session=$session/" "$CONF"
+echo "autologin session: $session (was $current)"
+if [ "${2:-}" = now ]; then
+    sudo systemctl restart lightdm
+else
+    echo "takes effect at the next boot; add 'now' to switch immediately"
+fi

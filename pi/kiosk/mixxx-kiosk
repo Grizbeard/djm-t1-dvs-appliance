@@ -1,0 +1,143 @@
+#!/bin/bash
+# Mixxx supervisor for the kiosk session. Started by the session's labwc
+# autostart; the session has nothing else on screen.
+#
+#   mixxx-kiosk            run Mixxx and supervise it (the session does this)
+#   mixxx-kiosk restart    close Mixxx cleanly and start it again (maintenance)
+#
+# What happens when Mixxx exits:
+#
+#   status 0      the user quit, so power the Pi off. This is the appliance's
+#                 shutdown button, and a skin button bound to Mixxx's exit
+#                 command becomes a touchscreen power switch.
+#   any other     a crash, or a signal (a stray `pkill mixxx`), so start Mixxx
+#                 again. Three crashes inside two minutes bring up the desktop
+#                 instead, so a broken build never leaves just a black screen.
+#
+# Mixxx opens its sound card and MIDI ports once, at startup, and never retries.
+# So it waits for the DJM-T1 card and the djm_midi bridge port before the first
+# start, and restarts Mixxx whenever the bridge comes up afresh: the mixer was
+# plugged in late, or unplugged and replugged. The bridge's sequencer client
+# gets a new pid every time it re-arms the mixer, which is how that is detected.
+#
+# Restarts close Mixxx's window through the compositor rather than signalling
+# it. Mixxx has no SIGTERM handler, so a signal would kill it without saving
+# its settings or its window geometry.
+#
+# Never power off while the system itself is shutting down: a reboot started
+# over SSH closes Mixxx too, and must stay a reboot.
+
+MIXXX="$HOME/mixxx/build/mixxx"
+APP_ID="org.mixxx.Mixxx"
+TAG=mixxx-kiosk
+READY_TIMEOUT=30
+RESTART_FLAG="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}/mixxx-kiosk.restart"
+
+log() { logger -t "$TAG" -- "$*"; }
+
+bridge_pid() {
+    aconnect -l 2>/dev/null |
+        sed -n "s/^client [0-9]*: 'Pioneer DJM-T1' \[type=user,pid=\([0-9]*\)\].*/\1/p"
+}
+ready() { [ -e /proc/asound/DJMT1Audio ] && [ -n "$(bridge_pid)" ]; }
+
+# Ask Mixxx to quit the way the window's close button would. Falls back to
+# SIGTERM if it has not gone after $2 seconds (default 30), e.g. because a
+# modal dialog is up: a close request does not get past one.
+close_mixxx() {
+    local pid=$1 grace=${2:-30}
+    wlrctl toplevel close "app_id:$APP_ID" 2>/dev/null
+    for _ in $(seq 1 "$grace"); do kill -0 "$pid" 2>/dev/null || return 0; sleep 1; done
+    log "Mixxx did not close within $grace s; sending SIGTERM"
+    kill -TERM "$pid" 2>/dev/null
+    for _ in $(seq 1 10); do kill -0 "$pid" 2>/dev/null || return 0; sleep 1; done
+    kill -KILL "$pid" 2>/dev/null
+}
+
+show_desktop() {
+    lwrespawn /usr/bin/pcmanfm-pi &
+    lwrespawn /usr/bin/wf-panel-pi &
+}
+
+if [ "${1:-}" = restart ]; then
+    pid=$(pgrep -x mixxx) || { echo "Mixxx is not running"; exit 1; }
+    touch "$RESTART_FLAG"
+    close_mixxx "$pid"
+    exit 0
+fi
+
+pgrep -x mixxx >/dev/null && { log "Mixxx already running; not supervising"; exit 0; }
+
+stopping=0
+trap 'stopping=1' TERM INT HUP
+
+# kanshi rotates the panel to landscape just after the session starts. Starting
+# before that would lay the window out for a 480x1920 screen.
+for _ in $(seq 1 50); do
+    wlr-randr 2>/dev/null | grep -q 'Transform: 90' && break
+    sleep 0.1
+done
+
+for i in $(seq 1 "$READY_TIMEOUT"); do
+    ready && break
+    sleep 1
+done
+if ready; then
+    log "DJM-T1 card and MIDI bridge ready after ${i}s"
+else
+    log "DJM-T1 not ready after ${READY_TIMEOUT}s; starting Mixxx without it"
+fi
+
+crashes=()
+while :; do
+    rm -f "$RESTART_FLAG"
+    started_with=$(bridge_pid)
+    [ -e /proc/asound/DJMT1Audio ] || started_with=""
+    "$MIXXX" --full-screen &
+    pid=$!
+    log "started Mixxx (pid $pid, bridge ${started_with:-absent})"
+
+    while kill -0 "$pid" 2>/dev/null; do
+        sleep 2 &
+        wait $!
+        [ "$stopping" = 1 ] && break
+        [ -e "$RESTART_FLAG" ] && break
+        if ready && [ "$(bridge_pid)" != "$started_with" ]; then
+            sleep 3      # let the bridge finish its startup dump before Mixxx subscribes
+            log "DJM-T1 (re)appeared (bridge pid $(bridge_pid), was ${started_with:-absent}); restarting Mixxx"
+            touch "$RESTART_FLAG"
+            # Started without the mixer, Mixxx sits in its modal "No Output
+            # Devices" dialog with nothing worth saving, so don't wait long.
+            if [ -n "$started_with" ]; then close_mixxx "$pid"; else close_mixxx "$pid" 5; fi
+            break
+        fi
+    done
+
+    wait "$pid"
+    rc=$?
+    if [ "$stopping" = 1 ] || [ "$(systemctl is-system-running 2>/dev/null)" = stopping ]; then
+        log "session or system is stopping; leaving Mixxx's exit ($rc) alone"
+        exit 0
+    fi
+    if [ -e "$RESTART_FLAG" ]; then
+        log "restarting Mixxx as requested"
+        continue
+    fi
+    if [ "$rc" = 0 ]; then
+        log "Mixxx quit normally; powering off"
+        systemctl --no-ask-password poweroff 2>/dev/null || sudo -n systemctl poweroff
+        exit 0
+    fi
+
+    now=$(date +%s)
+    recent=()
+    for t in "${crashes[@]}"; do [ $((now - t)) -lt 120 ] && recent+=("$t"); done
+    crashes=("${recent[@]}" "$now")
+    log "Mixxx exited with status $rc (${#crashes[@]} crash(es) in 2 min)"
+    if [ "${#crashes[@]}" -ge 3 ]; then
+        log "Mixxx keeps crashing; showing the desktop instead"
+        show_desktop
+        exit 1
+    fi
+    sleep 2
+done

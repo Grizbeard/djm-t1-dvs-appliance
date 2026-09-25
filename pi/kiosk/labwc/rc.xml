@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<openbox_config xmlns="http://openbox.org/3.4/rc">
+  <theme>
+    <name>PiXtrix</name>
+  </theme>
+
+  <!--
+    Mixxx runs fullscreen here, so its dialogs (the "No Output Devices" prompt,
+    track properties, preferences) must stay above the main window. Otherwise
+    one can open behind it, still modal, and the app looks hung with no way
+    back in.
+
+    The identifier is Mixxx's Wayland app_id. The desktop session's rule used
+    "mixxx", which matches nothing.
+  -->
+  <windowRules>
+    <windowRule identifier="org.mixxx.Mixxx" type="dialog">
+      <action name="ToggleAlwaysOnTop" />
+    </windowRule>
+  </windowRules>
+</openbox_config>

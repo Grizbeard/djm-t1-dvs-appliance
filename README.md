@@ -26,7 +26,7 @@ Nothing is built yet. This is the project skeleton and the plan.
 | Re-arm behaviour across PCM open/close resolved | ⬜ |
 | External-mixing Mixxx mapping | ⬜ |
 | Mixxx built for aarch64 | ⬜ |
-| Headless boot / kiosk autostart | 🔶 boots into Mixxx; fullscreen/kiosk chrome not done |
+| Headless boot / kiosk autostart | ✅ verbose boot straight into fullscreen Mixxx; quit = power off |
 | Enclosure, power and thermal | ⬜ |
 
 ## Architecture

@@ -1,0 +1,6 @@
+# The appliance session: a black background, the panel rotation, and Mixxx.
+# No panel, no desktop icons, no XDG autostart. The regular Pi desktop session
+# is still installed for maintenance; switch to it with `appliance-mode desktop`.
+swaybg -c '#000000' >/dev/null 2>&1 &
+kanshi >/dev/null 2>&1 &
+"$HOME/.local/bin/mixxx-kiosk" &

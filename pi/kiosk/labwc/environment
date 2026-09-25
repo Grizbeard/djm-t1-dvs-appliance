@@ -1,0 +1,11 @@
+# The system file /etc/xdg/labwc/environment is not read in this session (labwc
+# runs with -C and without -m), so everything Mixxx and Xwayland need is here.
+DESKTOP_SESSION=mixxx-kiosk
+QT_WAYLAND_DISABLE_WINDOWDECORATION=1
+WLR_XWAYLAND=/usr/bin/xwayland-xauth
+XAUTHORITY=~/.Xauthority
+XCURSOR_THEME=PiXtrix
+XCURSOR_SIZE=24
+LABWC_FALLBACK_OUTPUT=NOOP-1
+XKB_DEFAULT_MODEL=pc105
+XKB_DEFAULT_LAYOUT=us
