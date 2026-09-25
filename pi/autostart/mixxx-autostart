@@ -1,0 +1,31 @@
+#!/bin/bash
+# Start Mixxx at desktop login, once the DJM-T1 is ready for it.
+#
+# Mixxx opens its sound card and MIDI ports once, at startup, and never retries.
+# At login this races the djm-midi-kernel user service, which creates the MIDI
+# port only after it has armed the mixer. Started first, Mixxx would come up with
+# audio but deaf controls. So wait for both the card and the bridge port.
+#
+# If the mixer is not plugged in, give up waiting after TIMEOUT seconds and
+# start anyway, so the box still boots into Mixxx.
+TIMEOUT=30
+MIXXX="$HOME/mixxx/build/mixxx"
+
+pgrep -x mixxx >/dev/null && exit 0
+
+ready() {
+    [ -e /proc/asound/DJMT1Audio ] &&
+        aconnect -l 2>/dev/null | grep -q "'Pioneer DJM-T1' \[type=user"
+}
+
+for i in $(seq 1 "$TIMEOUT"); do
+    ready && break
+    sleep 1
+done
+if ready; then
+    logger -t mixxx-autostart "DJM-T1 card and MIDI bridge ready after ${i}s"
+else
+    logger -t mixxx-autostart "DJM-T1 not ready after ${TIMEOUT}s, starting Mixxx without it"
+fi
+
+exec "$MIXXX" "$@"

@@ -293,9 +293,14 @@ sake as an upstream contribution.
 
 ## Phase 9 — Appliance shell
 
-- ⬜ Autostart Mixxx on boot, fullscreen, no desktop chrome.
-- ⬜ systemd: upstream ships **user** services, which need a live session. Either
+- 🔶 Autostart Mixxx on boot, fullscreen, no desktop chrome. **Autostart done**
+  (2026-09-25, cold-boot verified; [`pi/autostart/`](../pi/autostart/)). Mixxx
+  waits for the DJM-T1 card and the MIDI bridge before starting. Forced fullscreen
+  and hiding the desktop chrome are not done.
+- ✅ systemd: upstream ships **user** services, which need a live session. Either
   `loginctl enable-linger` or convert to system units. Record which and why.
+  **Neither: user services plus autologin**, reasoning in
+  [`pi/systemd/README.md`](../pi/systemd/README.md).
 - ⬜ **On-screen keyboard — probably already solved.** Raspberry Pi OS Bookworm and later
   ship **Squeekboard** by default, auto-popping when text input is focused, with a
   taskbar toggle. That may remove the need for the marcosseris `search-osk` Mixxx patch

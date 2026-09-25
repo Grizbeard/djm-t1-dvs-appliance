@@ -1,0 +1,7 @@
+[Desktop Entry]
+Type=Application
+Name=Mixxx (appliance autostart)
+Comment=Start Mixxx at login once the DJM-T1 card and MIDI bridge are up
+Exec=/home/griz/.local/bin/mixxx-autostart
+Terminal=false
+X-GNOME-Autostart-enabled=true
