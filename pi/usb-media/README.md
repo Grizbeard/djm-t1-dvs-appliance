@@ -72,8 +72,11 @@ at boot, before anyone logs in, and whichever session is running:
   there (shown as missing) after the drive leaves.
 - **Mixxx's library root should not be the home directory**, or it scans source
   trees and build output. On the bench Pi it is `~/Music`, set in the
-  `directories` table and in `[Playlist] Directory`, with `[Library]
-  RescanOnStartup 1`.
+  `directories` table and in `[Playlist] Directory`.
+- **`[Library] RescanOnStartup` stays 0.** Drives are browsed, not scanned, so
+  a rescan only ever covers `~/Music`, and a startup rescan ends in a "Library
+  scan finished" dialog that waits for OK on the touchscreen at every boot.
+  Rescan from the library after adding music instead.
 - **Moving an existing drive to these paths** (for example, from the desktop's
   `/media/<user>/<label>`) leaves its tracks in Mixxx's library pointing at the
   old path. With Mixxx stopped, rewriting `track_locations.location` and
