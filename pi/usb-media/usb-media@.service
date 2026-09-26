@@ -1,0 +1,14 @@
+[Unit]
+Description=Mount USB drive %I read-only for Mixxx
+Documentation=file:///usr/local/sbin/usb-media
+# Bound to the device: pulling the drive stops this unit, and stopping it
+# unmounts. Started by 99-usb-media.rules through SYSTEMD_WANTS, at boot for
+# drives already plugged in and on every hotplug after.
+BindsTo=dev-%i.device
+After=dev-%i.device
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/local/sbin/usb-media mount %I
+ExecStop=/usr/local/sbin/usb-media unmount %I

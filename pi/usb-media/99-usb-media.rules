@@ -1,0 +1,10 @@
+# A filesystem on a USB drive - on a partition, or on the whole disk when the
+# drive has no partition table - gets mounted read-only for Mixxx by
+# usb-media@<kernel name>.service. The mount itself cannot happen here: udev
+# runs its programs in a private mount namespace and kills them after a few
+# seconds, so it only asks systemd to do it.
+#
+# ID_BUS and ID_FS_USAGE come from the stock persistent-storage rules, which run
+# before this one. The SD card is on the mmc bus and never matches.
+ACTION=="add", SUBSYSTEM=="block", ENV{ID_BUS}=="usb", ENV{ID_FS_USAGE}=="filesystem", \
+    TAG+="systemd", ENV{SYSTEMD_WANTS}+="usb-media@%k.service"

@@ -1,0 +1,122 @@
+#!/bin/bash
+# Mount a USB drive's filesystem read-only where Mixxx looks for removable
+# devices, and unmount it again. Run by usb-media@<kernel name>.service, which
+# the udev rule starts when a USB filesystem appears and which stops by itself
+# when the device goes away.
+#
+#   usb-media mount sda1
+#   usb-media unmount sda1
+#
+# Drives are strangers' drives, so:
+#
+#   - read-only, always: pulling a drive mid-set cannot damage it, and Mixxx
+#     never writes to it. ext2/3/4 also get noload, so a journal left dirty by
+#     another machine is not replayed - replaying writes.
+#   - mounted at /run/media/<user>/<label>-<serial>. Mixxx lists what is under
+#     /run/media/$USER as Removable Devices, and its Rekordbox and Serato views
+#     look there for exported libraries. /run is cleared every boot, so no stale
+#     directories survive a power cut. The serial (from the filesystem UUID)
+#     keeps two drives with the same label and the same folder layout apart:
+#     Mixxx keys cues and analysis by path, and without it one DJ's "MUSIC"
+#     drive would inherit another's cue points.
+#   - owned by the appliance user, because FAT, exFAT, NTFS and HFS+ carry no
+#     usable Unix ownership.
+#   - noexec, nosuid, nodev: nothing on a drive runs.
+#
+# APFS - the default for recently formatted Mac drives - has no kernel driver
+# and is logged and skipped.
+
+set -u
+
+MEDIA_USER=griz
+[ -r /etc/default/usb-media ] && . /etc/default/usb-media
+
+ROOT=/run/media/$MEDIA_USER
+STATE=/run/usb-media
+TAG=usb-media
+
+# To the journal; to the terminal as well only when run by hand, since under
+# systemd stderr goes to the journal too and every line would appear twice.
+log() { logger -t "$TAG" -- "$*"; [ -t 2 ] && echo "$*" >&2; return 0; }
+
+cmd=${1:-}
+kname=${2:-}
+case "$kname" in
+    ''|*/*) log "usage: usb-media mount|unmount <kernel device name>"; exit 2 ;;
+esac
+dev=/dev/$kname
+
+do_mount() {
+    # One field at a time, as raw values: a volume label is text off a
+    # stranger's drive, and is never evaluated.
+    local fstype label uuid
+    fstype=$(blkid -p -s TYPE -o value "$dev" 2>/dev/null)
+    label=$(blkid -p -s LABEL -o value "$dev" 2>/dev/null)
+    uuid=$(blkid -p -s UUID -o value "$dev" 2>/dev/null)
+
+    local uid gid
+    uid=$(id -u "$MEDIA_USER") || { log "no user $MEDIA_USER"; exit 1; }
+    gid=$(id -g "$MEDIA_USER")
+
+    local common="ro,nosuid,nodev,noexec,noatime"
+    local own="uid=$uid,gid=$gid"
+    local type opts fallback=""
+    case "$fstype" in
+        vfat)           type=vfat;    opts="$common,$own,umask=022,utf8,shortname=mixed" ;;
+        exfat)          type=exfat;   opts="$common,$own,umask=022,iocharset=utf8" ;;
+        ntfs|ntfs3)     type=ntfs3;   opts="$common,$own,umask=022,iocharset=utf8"
+                        fallback="ntfs-3g" ;;
+        ext2|ext3|ext4) type=$fstype; opts="$common,noload" ;;
+        hfsplus)        type=hfsplus; opts="$common,$own,umask=022" ;;
+        iso9660|udf)    type=$fstype; opts="$common,$own" ;;
+        apfs)           log "$dev: APFS (a Mac-formatted drive) cannot be read here; skipped"; exit 0 ;;
+        '')             log "$dev: no filesystem found; skipped"; exit 0 ;;
+        *)              log "$dev: $fstype is not supported; skipped"; exit 0 ;;
+    esac
+
+    # Something readable for the name, and something unique to disambiguate it.
+    local name serial
+    name=$(printf '%s' "$label" | LC_ALL=C tr -c 'A-Za-z0-9._-' '_' |
+        sed -e 's/__*/_/g' -e 's/^[_.-]*//' -e 's/_*$//' | cut -c1-32)
+    [ -n "$name" ] || name=USB
+    serial=$(printf '%s' "${uuid//-/}" | tr 'a-z' 'A-Z' | cut -c1-8)
+    [ -n "$serial" ] || serial=$kname
+
+    mkdir -p "$ROOT" "$STATE"
+    chmod 755 /run/media "$ROOT"
+
+    local dir=$ROOT/$name-$serial n=2
+    while mountpoint -q "$dir"; do
+        dir=$ROOT/$name-$serial-$n
+        n=$((n + 1))
+    done
+    mkdir -p "$dir"
+
+    if mount -t "$type" -o "$opts" "$dev" "$dir" 2>/dev/null ||
+        { [ -n "$fallback" ] && command -v "$fallback" >/dev/null &&
+          mount -t "$fallback" -o "$opts" "$dev" "$dir"; }; then
+        printf '%s\n' "$dir" > "$STATE/$kname"
+        log "$dev ($fstype, \"$label\") mounted read-only at $dir"
+    else
+        rmdir "$dir" 2>/dev/null
+        log "$dev ($fstype, \"$label\"): mount failed"
+        exit 1
+    fi
+}
+
+do_unmount() {
+    local dir
+    dir=$(cat "$STATE/$kname" 2>/dev/null) || { log "$dev: not mounted by usb-media"; exit 0; }
+    # Lazy: the device is usually gone already, and Mixxx may still hold a
+    # file open on it. The mount detaches now and is released when it lets go.
+    umount -l "$dir" 2>/dev/null
+    rmdir "$dir" 2>/dev/null
+    rm -f "$STATE/$kname"
+    log "$dev unmounted from $dir"
+}
+
+case "$cmd" in
+    mount)   do_mount ;;
+    unmount) do_unmount ;;
+    *)       log "usage: usb-media mount|unmount <kernel device name>"; exit 2 ;;
+esac
