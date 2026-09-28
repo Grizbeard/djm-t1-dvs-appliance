@@ -1,0 +1,297 @@
+#!/usr/bin/python3
+"""Drive the fan's two WS2812 LEDs as the appliance's power light.
+
+    status-light            run (status-light.service does this, as root)
+    status-light test       show red, green, blue, then each state, to check wiring
+    status-light show NAME  show one state's colour until Ctrl-C
+
+The LEDs are on /dev/leds0, made by the Pi 5's ws2812-pio overlay. The driver
+is used in pass-through mode (brightness 0): no gamma or brightness of its
+own, so this program owns the whole curve and dim colours stay visible.
+
+What the light says is worked out once a second from the system itself:
+
+    booting       amber, breathing    from early boot until Mixxx is on screen,
+                                      and while Mixxx restarts
+    on            white, steady       Mixxx is up and the DJM-T1 is connected
+    no mixer      blue, breathing     Mixxx is up but the DJM-T1 is not
+    attention     red, blinking       Mixxx has not come up (it keeps crashing,
+                                      or the desktop is shown for maintenance)
+    rebooting     amber, fast         the system is going down to restart
+    shutting down red, fast           the system is going down to power off
+    standby       dim red, steady     powered off, still plugged in
+
+The last one is written by the shutdown hook, not by this program: it runs
+after every process has been stopped and the LEDs keep their last colour for
+as long as the Pi's 5 V rail is up. On a reboot the hook leaves them amber, so
+the light reads "booting" through the firmware until this program is back.
+
+Colours, speed and brightness can be changed in /etc/default/status-light.
+
+SPDX-License-Identifier: MIT
+"""
+
+import math
+import os
+import pwd
+import signal
+import subprocess
+import sys
+import time
+
+DEVICE = "/dev/leds0"
+CONFIG = "/etc/default/status-light"
+FPS = 25
+
+# name: (config key, default colour, animation, period in seconds)
+STATES = {
+    "booting": ("BOOTING", "255,110,0", "breathe", 2.4),
+    "on": ("ON", "255,255,255", "steady", 0),
+    "nomixer": ("NO_MIXER", "0,60,255", "breathe", 3.0),
+    "attention": ("ATTENTION", "255,0,0", "blink", 1.0),
+    "rebooting": ("REBOOTING", "255,110,0", "breathe", 0.8),
+    "shutdown": ("SHUTDOWN", "255,0,0", "breathe", 0.8),
+    "standby": ("STANDBY", "70,0,0", "steady", 0),
+    "off": (None, "0,0,0", "steady", 0),
+}
+
+# How long Mixxx may be missing, after boot or after it was last seen, before
+# that is worth a red light: the kiosk waits up to 30 s for the mixer, and a
+# restart takes a few seconds more.
+GRACE_S = 60
+
+
+def load_config():
+    cfg = {"BRIGHTNESS": "60", "KIOSK_USER": "griz", "LEDS": "2", "GAMMA": "2.2"}
+    try:
+        with open(CONFIG, encoding="utf-8") as f:
+            for line in f:
+                line = line.strip()
+                if not line or line.startswith("#") or "=" not in line:
+                    continue
+                k, v = line.split("=", 1)
+                cfg[k.strip()] = v.strip().strip('"').strip("'")
+    except OSError:
+        pass
+    return cfg
+
+
+def parse_rgb(text):
+    try:
+        r, g, b = (max(0, min(255, int(x))) for x in text.split(","))
+        return r, g, b
+    except ValueError:
+        return None
+
+
+class Leds:
+    def __init__(self, cfg):
+        self.count = int(cfg["LEDS"])
+        self.brightness = max(0.0, min(100.0, float(cfg["BRIGHTNESS"]))) / 100
+        self.gamma = float(cfg["GAMMA"])
+        self.fd = None
+        self.last = None
+
+    def open(self, wait_s=60):
+        # The device appears when udev loads the driver, a few seconds into boot.
+        for _ in range(wait_s * 10):
+            try:
+                self.fd = os.open(DEVICE, os.O_WRONLY)
+                break
+            except FileNotFoundError:
+                time.sleep(0.1)
+        if self.fd is None:
+            sys.exit(f"status-light: {DEVICE} did not appear (is the ws2812-pio overlay loaded?)")
+        os.write(self.fd, b"\x00")   # a single byte at offset 0: pass-through mode
+
+    def show(self, rgb, level=1.0, scaled=True):
+        """rgb at `level` (0..1) of full; `scaled` applies BRIGHTNESS and gamma."""
+        out = []
+        for c in rgb:
+            v = c / 255 * level * (self.brightness if scaled else 1.0)
+            out.append(round(255 * v ** self.gamma) if v > 0 else 0)
+        frame = bytes(out) * self.count
+        if frame != self.last:
+            os.pwrite(self.fd, frame, 0)
+            self.last = frame
+
+
+def level_at(animation, period, t):
+    if animation == "breathe":
+        return 0.08 + 0.92 * (0.5 - 0.5 * math.cos(2 * math.pi * t / period))
+    if animation == "blink":
+        return 1.0 if (t % period) < period / 2 else 0.0
+    return 1.0
+
+
+class System:
+    """What the appliance is doing, from /proc, ALSA and systemd."""
+
+    def __init__(self, cfg):
+        self.booted_at = time.monotonic()
+        self.mixxx_seen_at = None
+        self.ready_pid = None
+        try:
+            pw = pwd.getpwnam(cfg["KIOSK_USER"])
+            self.uid, self.gid = pw.pw_uid, pw.pw_gid
+        except KeyError:
+            self.uid = self.gid = None
+
+    @staticmethod
+    def mixxx_pid():
+        for d in os.listdir("/proc"):
+            if not d.isdigit():
+                continue
+            try:
+                with open(f"/proc/{d}/comm", encoding="utf-8") as f:
+                    if f.read().strip() == "mixxx":
+                        return int(d)
+            except OSError:
+                continue
+        return None
+
+    def mixxx_window(self):
+        """True once Mixxx's window is on screen, i.e. it has finished loading."""
+        if self.uid is None:
+            return True
+        env = {"XDG_RUNTIME_DIR": f"/run/user/{self.uid}", "WAYLAND_DISPLAY": "wayland-0",
+               "PATH": "/usr/bin:/bin"}
+        try:
+            r = subprocess.run(["wlrctl", "toplevel", "find", "app_id:org.mixxx.Mixxx"],
+                               env=env, user=self.uid, group=self.gid,
+                               stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                               timeout=3)
+            return r.returncode == 0
+        except (OSError, subprocess.SubprocessError):
+            return False
+
+    @staticmethod
+    def systemd_state():
+        """systemctl is-system-running, or "" if systemd cannot be asked."""
+        try:
+            return subprocess.run(["systemctl", "is-system-running"], capture_output=True,
+                                  text=True, timeout=3).stdout.strip()
+        except (OSError, subprocess.SubprocessError):
+            return ""
+
+    @staticmethod
+    def going_down():
+        """None, or "rebooting" / "shutdown" while systemd is taking the system down."""
+        if System.systemd_state() != "stopping":
+            return None
+        try:
+            jobs = subprocess.run(["systemctl", "list-jobs", "--no-legend", "--plain"],
+                                  capture_output=True, text=True, timeout=3).stdout
+        except (OSError, subprocess.SubprocessError):
+            jobs = ""
+        return "rebooting" if ("reboot.target" in jobs or "kexec.target" in jobs) else "shutdown"
+
+    def state(self):
+        down = self.going_down()
+        if down:
+            return down
+        now = time.monotonic()
+        pid = self.mixxx_pid()
+        if pid is None:
+            self.ready_pid = None
+            since = self.mixxx_seen_at or self.booted_at
+            return "booting" if now - since < GRACE_S else "attention"
+        self.mixxx_seen_at = now
+        if self.ready_pid != pid:
+            if not self.mixxx_window():
+                return "booting"
+            self.ready_pid = pid
+        return "on" if os.path.exists("/proc/asound/DJMT1Audio") else "nomixer"
+
+
+def colour_of(cfg, name):
+    key, default, _anim, _period = STATES[name]
+    return parse_rgb(cfg.get(key, default) if key else default) or parse_rgb(default)
+
+
+def animate(leds, cfg, name, t):
+    _key, _default, anim, period = STATES[name]
+    if name == "standby":
+        # Dim on purpose: written as is, not scaled down by BRIGHTNESS.
+        leds.show(colour_of(cfg, name), scaled=False)
+    else:
+        leds.show(colour_of(cfg, name), level_at(anim, period, t))
+
+
+def run():
+    cfg = load_config()
+    leds = Leds(cfg)
+    leds.open()
+    system = System(cfg)
+    stop = []
+
+    def on_term(_sig, _frm):
+        stop.append(True)
+    signal.signal(signal.SIGTERM, on_term)
+    signal.signal(signal.SIGINT, on_term)
+
+    name = "booting"
+    next_check = 0.0
+    start = time.monotonic()
+    while not stop:
+        now = time.monotonic()
+        if now >= next_check:
+            new = system.state()
+            if new != name:
+                print(f"{name} -> {new}", flush=True)
+                name = new
+                start = now      # start each animation from its dim point
+            next_check = now + 1.0
+        animate(leds, cfg, name, now - start)
+        if STATES[name][2] == "steady":
+            time.sleep(max(0.0, next_check - time.monotonic()))   # nothing to redraw
+        else:
+            time.sleep(1 / FPS)
+
+    # Stopped by hand: turn the light off. Stopped at shutdown - systemd is
+    # stopping, or already gone and not answering, which is how the final
+    # SIGTERM of a shutdown finds it - leave it for the shutdown hook.
+    if System.systemd_state() in ("running", "degraded", "starting", "initializing",
+                                  "maintenance"):
+        leds.show((0, 0, 0))
+
+
+def demo(names, seconds):
+    cfg = load_config()
+    leds = Leds(cfg)
+    leds.open(wait_s=1)
+    for name in names:
+        print(name, flush=True)
+        start = time.monotonic()
+        while time.monotonic() - start < seconds:
+            animate(leds, cfg, name, time.monotonic() - start)
+            time.sleep(1 / FPS)
+
+
+def main(argv):
+    if len(argv) <= 1:
+        run()
+        return
+    if argv[1] == "test":
+        cfg = load_config()
+        leds = Leds(cfg)
+        leds.open(wait_s=1)
+        for label, rgb in (("red", (255, 0, 0)), ("green", (0, 255, 0)), ("blue", (0, 0, 255))):
+            print(label, flush=True)
+            leds.show(rgb)
+            time.sleep(2)
+        demo(["booting", "on", "nomixer", "attention", "rebooting", "shutdown", "standby"], 4)
+        print("off (the service puts the light back within a second, if it is running)")
+        leds.show((0, 0, 0))
+        return
+    if argv[1] == "show" and len(argv) == 3 and argv[2] in STATES:
+        try:
+            demo([argv[2]], 1e9)
+        except KeyboardInterrupt:
+            pass
+        return
+    sys.exit(__doc__.split("\n\n")[1])
+
+
+if __name__ == "__main__":
+    main(sys.argv)

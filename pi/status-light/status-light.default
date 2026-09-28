@@ -1,0 +1,20 @@
+# Power light on the fan's WS2812 LEDs (pi/status-light). Colours are R,G,B at
+# full scale, 0-255 each. Restart the service after editing:
+#   sudo systemctl restart status-light
+
+# Overall brightness of every state but standby, percent.
+BRIGHTNESS=60
+
+BOOTING=255,110,0
+ON=255,255,255
+NO_MIXER=0,60,255
+ATTENTION=255,0,0
+REBOOTING=255,110,0
+SHUTDOWN=255,0,0
+# Powered off but plugged in. Meant dim; not scaled by BRIGHTNESS.
+STANDBY=70,0,0
+
+# The user whose Wayland session shows Mixxx, to tell when its window is up.
+KIOSK_USER=griz
+LEDS=2
+GAMMA=2.2

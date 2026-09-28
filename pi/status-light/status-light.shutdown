@@ -1,0 +1,32 @@
+#!/bin/sh
+# The power light's last word. systemd-shutdown runs every executable in
+# /usr/lib/systemd/system-shutdown/ once all processes have been stopped, with
+# "poweroff", "halt", "reboot" or "kexec". The WS2812s keep this colour for as
+# long as they have power: standby while the Pi is off but plugged in, and the
+# booting colour through the firmware on a reboot, until status-light is back.
+#
+# SPDX-License-Identifier: MIT
+
+DEV=/dev/leds0
+[ -w "$DEV" ] || exit 0
+
+BRIGHTNESS=60 GAMMA=2.2 LEDS=2 STANDBY=70,0,0 BOOTING=255,110,0
+[ -r /etc/default/status-light ] && . /etc/default/status-light
+
+# Same curve as status-light: BRIGHTNESS (percent) then gamma. Standby is
+# meant dim and is not scaled by BRIGHTNESS.
+case "$1" in
+    reboot|kexec) rgb=$BOOTING scale=$BRIGHTNESS ;;
+    *) rgb=$STANDBY scale=100 ;;
+esac
+frame=$(echo "$rgb" | awk -F, -v s="$scale" -v g="$GAMMA" -v n="$LEDS" '{
+    px = ""
+    for (i = 1; i <= 3; i++) {
+        v = $i / 255 * s / 100
+        px = px sprintf("\%03o", v > 0 ? int(255 * v ^ g + 0.5) : 0)
+    }
+    for (j = 0; j < n; j++) printf "%s", px
+}')
+
+printf '\000' > "$DEV"      # one byte at offset 0: pass-through, no driver gamma
+printf "$frame" > "$DEV"

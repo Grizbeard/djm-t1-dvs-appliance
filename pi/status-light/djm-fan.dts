@@ -1,0 +1,51 @@
+// Drive the Pi 5's own temperature-controlled fan output on GPIO18 instead of
+// the fan connector, for a fan wired to the 40-pin header.
+//
+// The Pi 5 already has a pwm-fan device (`cooling_fan`) tied to the CPU
+// temperature trips at 50, 60, 67.5 and 75 C, the same curve the Active Cooler
+// uses. It is left disabled when nothing is on the fan connector. This enables
+// it and moves its output from the connector's pin (GPIO45, PWM1 channel 3) to
+// GPIO18, which RP1 can drive from PWM0 channel 2 in hardware.
+//
+// The fan connector inverts its PWM; a fan wired straight to a GPIO follows the
+// usual 4-wire fan convention, where high is "run", so the polarity is normal.
+//
+// Built by install.sh: dtc -@ -I dts -O dtb -o djm-fan.dtbo djm-fan.dts
+//
+// SPDX-License-Identifier: MIT
+
+/dts-v1/;
+/plugin/;
+
+/ {
+	compatible = "brcm,bcm2712";
+
+	fragment@0 {
+		target = <&rp1_gpio>;
+		__overlay__ {
+			djm_fan_pins: djm_fan_pins {
+				function = "pwm0";
+				pins = "gpio18";
+				bias-disable;
+			};
+		};
+	};
+
+	fragment@1 {
+		target = <&rp1_pwm0>;
+		__overlay__ {
+			pinctrl-names = "default";
+			pinctrl-0 = <&djm_fan_pins>;
+			status = "okay";
+		};
+	};
+
+	fragment@2 {
+		target = <&fan>;
+		__overlay__ {
+			// channel 2 of PWM0, 41566 ns (24 kHz) like the stock fan, normal polarity
+			pwms = <&rp1_pwm0 2 41566 0>;
+			status = "okay";
+		};
+	};
+};

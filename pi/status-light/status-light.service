@@ -1,0 +1,18 @@
+[Unit]
+Description=Fan LEDs as the appliance's power light
+Documentation=file:///usr/local/sbin/status-light
+# Up from early boot, to show the boot, and never stopped by the shutdown
+# transaction, to show the shutdown: with no default dependencies it runs until
+# systemd-shutdown's final kill, and its hook then writes the standby colour.
+DefaultDependencies=no
+After=systemd-modules-load.service
+
+[Service]
+Type=simple
+ExecStart=/usr/local/sbin/status-light
+Restart=on-failure
+RestartSec=2
+Nice=10
+
+[Install]
+WantedBy=sysinit.target
