@@ -76,6 +76,32 @@ sudo install -m644 mixxx-kiosk.desktop /usr/share/wayland-sessions/mixxx-kiosk.d
 install -Dm755 mixxx-kiosk "$HOME/.local/bin/mixxx-kiosk"
 install -d "$HOME/.config/labwc-kiosk"
 install -m644 labwc/autostart labwc/rc.xml labwc/environment "$HOME/.config/labwc-kiosk/"
+
+echo "==> Qt dialogs: the skin's Btop palette"
+# Mixxx applies the skin's stylesheet to the skin and the menu bar only, so its
+# dialogs take the palette from qt6ct, which Pi OS points at the light PiXtrix
+# scheme. qt6ct has one config per user, so the desktop session's Qt apps get
+# this too, and Appearance Settings rewrites the path if it is used there.
+install -Dm644 qt6ct/btop.conf "$HOME/.config/qt6ct/colors/btop.conf"
+QT6CT_CONF="$HOME/.config/qt6ct/qt6ct.conf"
+[ -f "$QT6CT_CONF" ] && cp "$QT6CT_CONF" "$QT6CT_CONF.bak-$STAMP"
+python3 - "$QT6CT_CONF" <<'EOF'
+import configparser, sys
+path = sys.argv[1]
+cfg = configparser.RawConfigParser()
+cfg.optionxform = str  # qt6ct's keys are case-sensitive
+cfg.read(path)
+if not cfg.has_section("Appearance"):
+    cfg.add_section("Appearance")
+cfg.set("Appearance", "color_scheme_path", "~/.config/qt6ct/colors/btop.conf")
+cfg.set("Appearance", "custom_palette", "true")
+# Pi OS sets style=gtk2, which has no Qt 6 plugin, so Qt falls back to the
+# bevelled Windows style. Fusion is flat, like the skin.
+cfg.set("Appearance", "style", "Fusion")
+with open(path, "w") as f:
+    cfg.write(f, space_around_delimiters=False)
+EOF
+
 # Retired by this session: the desktop-autostart launcher it replaces.
 rm -f "$HOME/.config/autostart/mixxx.desktop" "$HOME/.local/bin/mixxx-autostart"
 
