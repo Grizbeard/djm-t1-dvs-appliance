@@ -77,7 +77,7 @@ install -Dm755 mixxx-kiosk "$HOME/.local/bin/mixxx-kiosk"
 install -d "$HOME/.config/labwc-kiosk"
 install -m644 labwc/autostart labwc/rc.xml labwc/environment "$HOME/.config/labwc-kiosk/"
 
-echo "==> Qt dialogs: the skin's Btop palette"
+echo "==> Qt dialogs: the skin's Btop palette, 16pt text"
 # Mixxx applies the skin's stylesheet to the skin and the menu bar only, so its
 # dialogs take the palette from qt6ct, which Pi OS points at the light PiXtrix
 # scheme. qt6ct has one config per user, so the desktop session's Qt apps get
@@ -98,6 +98,16 @@ cfg.set("Appearance", "custom_palette", "true")
 # Pi OS sets style=gtk2, which has no Qt 6 plugin, so Qt falls back to the
 # bevelled Windows style. Fusion is flat, like the skin.
 cfg.set("Appearance", "style", "Fusion")
+# 16pt rather than Pi OS's 12: the dialogs' text and, with it, their buttons,
+# at the size the skin's own text is on this panel. The value is a QFont
+# string, "family,pointsize,...", so only the size field changes.
+if not cfg.has_section("Fonts"):
+    cfg.add_section("Fonts")
+for key in ("general", "fixed"):
+    font = cfg.get("Fonts", key, fallback='"Nunito Sans,12,-1,5,300,0,0,0,0,0,0,0,0,0,0,1"')
+    fields = font.strip('"').split(",")
+    fields[1] = "16"
+    cfg.set("Fonts", key, '"' + ",".join(fields) + '"')
 with open(path, "w") as f:
     cfg.write(f, space_around_delimiters=False)
 EOF
