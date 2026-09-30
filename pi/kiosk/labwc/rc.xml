@@ -13,6 +13,16 @@
     The identifier is Mixxx's Wayland app_id. The desktop session's rule used
     "mixxx", which matches nothing.
   -->
+  <!--
+    The Waveshare 8.8" panel is 480x1920 portrait, and its Goodix touch
+    controller reports in that same native frame. kanshi turns DSI-2 to
+    landscape (transform 90). wlroots applies an output's transform to touch
+    only when the device is mapped to that output. Unmapped, raw touch
+    coordinates are stretched across the whole 1920x480 layout unrotated, so
+    taps land in the wrong place.
+  -->
+  <touch deviceName="11-005d Goodix Capacitive TouchScreen" mapToOutput="DSI-2" mouseEmulation="no" />
+
   <windowRules>
     <windowRule identifier="org.mixxx.Mixxx" type="dialog">
       <action name="ToggleAlwaysOnTop" />
